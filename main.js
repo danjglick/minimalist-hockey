@@ -103,7 +103,7 @@ function gameLoop() {
     drawGoals()
     drawBall()
     drawPlayers()
-    stopBallIfPossessed()
+    stopBallIfPossessedOrOut()
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
@@ -147,12 +147,16 @@ function drawPlayers() {
 function handleTouchstart(event) {
     touch1.xPos = event.touches[0].clientX
     touch1.yPos = event.touches[0].clientY
+    isSendingBall = false
+    isSendingPlayer = false
     for (let i = 0; i < blueTeam.length; i++) {
         let bluePlayer = blueTeam[i]
-        let horizontallyAligned = (touch1.xPos > bluePlayer.xPos - PLAYER_RADIUS) && (touch1.xPos < bluePlayer.xPos + PLAYER_RADIUS)
-        let verticallyAligned = (touch1.yPos > bluePlayer.yPos - PLAYER_RADIUS) && (touch1.yPos < bluePlayer.yPos + PLAYER_RADIUS)
-        if (horizontallyAligned && verticallyAligned) {
-            if ((ball.xPos === bluePlayer.xPos) && (ball.yPos === bluePlayer.yPos - PIXEL_SHIM)) {
+        let isTouchHorizontallyAlignedWithPlayer = (touch1.xPos > bluePlayer.xPos - PLAYER_RADIUS) && (touch1.xPos < bluePlayer.xPos + PLAYER_RADIUS)
+        let isTouchVerticallyAlignedWithPlayer = (touch1.yPos > bluePlayer.yPos - PLAYER_RADIUS) && (touch1.yPos < bluePlayer.yPos + PLAYER_RADIUS)
+        if (isTouchHorizontallyAlignedWithPlayer && isTouchVerticallyAlignedWithPlayer) {
+            let isPlayerHorizontallyAlignedWithBall = Math.abs(bluePlayer.xPos - ball.xPos) <= PIXEL_SHIM
+            let isPlayerVerticallyAlignedWithBall = Math.abs(bluePlayer.yPos - ball.yPos) <= PIXEL_SHIM
+            if (isPlayerHorizontallyAlignedWithBall && isPlayerVerticallyAlignedWithBall) {
                 isSendingBall = true
             }
             else {
@@ -167,20 +171,20 @@ function handleTouchmove(event) {
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
     if (isSendingBall) {
-        ball.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * .25
-        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * .25
+        ball.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * .1
+        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * .1
     }
-    console.log(ball)
 }
 
-function stopBallIfPossessed() {
+function stopBallIfPossessedOrOut() {
     let players = blueTeam.concat(redTeam)
     for (let i = 0; i < players.length; i++) {
         let player = players[i]
-        let isHorizontallyAligned = (ball.xPos > player.xPos - PLAYER_RADIUS) && (ball.xPos < player.xPos + PLAYER_RADIUS)
-        let isVerticallyAligned = (ball.yPos > player.yPos - PLAYER_RADIUS) && (ball.yPos < player.yPos + PLAYER_RADIUS)
+        let isHorizontallyAlignedWithPlayer = (ball.xPos > player.xPos - PLAYER_RADIUS) && (ball.xPos < player.xPos + PLAYER_RADIUS)
+        let isVerticallyAlignedWithPlayer = (ball.yPos > player.yPos - PLAYER_RADIUS) && (ball.yPos < player.yPos + PLAYER_RADIUS)
         let isFarEnoughFromTouch1 = (Math.abs(player.xPos - touch1.xPos) > PLAYER_RADIUS) || (Math.abs(player.yPos - touch1.yPos) > PLAYER_RADIUS)
-        if (isHorizontallyAligned && isVerticallyAligned && isFarEnoughFromTouch1) {
+        let isOut = ball.xPos <= PIXEL_SHIM || ball.xPos >= screenWidth - PIXEL_SHIM || ball.yPos <= 0 || ball.yPos >= screenHeight - PIXEL_SHIM
+        if ((isHorizontallyAlignedWithPlayer && isVerticallyAlignedWithPlayer && isFarEnoughFromTouch1) || isOut) {
             ball.xPosChangePerFrame = 0
             ball.yPosChangePerFrame = 0
         }
