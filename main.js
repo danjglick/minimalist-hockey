@@ -95,7 +95,7 @@ function initializeGame() {
     canvas.height = screenHeight
     context = canvas.getContext('2d')
     document.addEventListener("touchstart", handleTouchstart)
-    document.addEventListener("touchmove", handleTouchmove)
+    document.addEventListener("touchmove", handleTouchmove, {passive: false})
     gameLoop()
 }
 
@@ -164,6 +164,7 @@ function handleTouchstart(event) {
 }
 
 function handleTouchmove(event) {
+    event.preventDefault()
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
     if (isSendingBall) {
