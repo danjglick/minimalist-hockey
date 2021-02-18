@@ -124,7 +124,7 @@ function drawBall() {
     ball.yPos += ball.yPosChangePerFrame
     context.beginPath()
     context.arc(ball.xPos, ball.yPos, BALL_RADIUS, 0, 2 * Math.PI)
-    context.fillStyle = "white"
+    context.fillStyle = "yellow"
     context.fill()
 }
 
