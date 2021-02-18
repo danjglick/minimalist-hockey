@@ -1,4 +1,4 @@
-const MILLISECONDS_PER_FRAME = 1
+const MILLISECONDS_PER_FRAME = 16
 const BALL_RADIUS = 10
 const PLAYER_RADIUS = 20
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
@@ -167,9 +167,10 @@ function handleTouchmove(event) {
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
     if (isSendingBall) {
-        ball.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * 0.01
-        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * 0.01
+        ball.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * .25
+        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * .25
     }
+    console.log(ball)
 }
 
 function stopBallIfPossessed() {
