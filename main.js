@@ -178,7 +178,7 @@ function stopBallIfPossessed() {
         let player = players[i]
         let isHorizontallyAligned = (ball.xPos > player.xPos - PLAYER_RADIUS) && (ball.xPos < player.xPos + PLAYER_RADIUS)
         let isVerticallyAligned = (ball.yPos > player.yPos - PLAYER_RADIUS) && (ball.yPos < player.yPos + PLAYER_RADIUS)
-        let isFarEnoughFromTouch1 = (Math.abs(player.xPos - touch1.xPos) > PIXEL_SHIM) || (Math.abs(player.yPos - touch1.yPos) > PIXEL_SHIM)
+        let isFarEnoughFromTouch1 = (Math.abs(player.xPos - touch1.xPos) > PLAYER_RADIUS) || (Math.abs(player.yPos - touch1.yPos) > PLAYER_RADIUS)
         if (isHorizontallyAligned && isVerticallyAligned && isFarEnoughFromTouch1) {
             ball.xPosChangePerFrame = 0
             ball.yPosChangePerFrame = 0
