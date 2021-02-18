@@ -87,7 +87,6 @@ let touch2 = {
 }
 let isSendingBall = false
 let isSendingPlayer = false
-let ballPossessor = {}
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
@@ -104,7 +103,7 @@ function gameLoop() {
     drawGoals()
     drawBall()
     drawPlayers()
-    getBallPossessor()
+    stopBallIfPossessed()
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
@@ -124,7 +123,7 @@ function drawBall() {
     ball.yPos += ball.yPosChangePerFrame
     context.beginPath()
     context.arc(ball.xPos, ball.yPos, BALL_RADIUS, 0, 2 * Math.PI)
-    context.fillStyle = "yellow"
+    context.fillStyle = "white"
     context.fill()
 }
 
@@ -173,7 +172,7 @@ function handleTouchmove(event) {
     }
 }
 
-function getBallPossessor() {
+function stopBallIfPossessed() {
     let players = blueTeam.concat(redTeam)
     for (let i = 0; i < players.length; i++) {
         let player = players[i]
@@ -182,7 +181,6 @@ function getBallPossessor() {
         if (horizontallyAligned && verticallyAligned) {
             ball.xPosChangePerFrame = 0
             ball.yPosChangePerFrame = 0
-            return player
         }
     }
 }
