@@ -3,6 +3,7 @@ const BALL_RADIUS = 10
 const PLAYER_RADIUS = 20
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 10
+const FAST_MULTIPLIER = 0.1
 
 let canvas;
 let context;
@@ -179,8 +180,8 @@ function handleTouchmove(event) {
     event.preventDefault()
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
-    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * 0.05
-    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * 0.05
+    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * FAST_MULTIPLIER
+    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * FAST_MULTIPLIER
     if (isSendingBall) {
         ball.xPosChangePerFrame = xPosChangePerFrame
         ball.yPosChangePerFrame = yPosChangePerFrame
