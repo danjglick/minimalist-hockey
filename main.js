@@ -2,6 +2,7 @@ const MILLISECONDS_PER_FRAME = 16
 const BALL_RADIUS = 10
 const PLAYER_RADIUS = 20
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
+const FRAMES_PER_SENT_PLAYER = 25
 
 let canvas;
 let context;
@@ -29,25 +30,25 @@ let blueTeam = [
         xPos: screenWidth * 0.5,
         yPos: screenHeight * 0.5 + PIXEL_SHIM,
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: -10
+        yPosChangePerFrame: 0
     },
     {
         xPos: screenWidth * 0.2,
         yPos: screenHeight * 0.75,
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: -10
+        yPosChangePerFrame: 0
     },
     {
         xPos: screenWidth * 0.8,
         yPos: screenHeight * 0.75,
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: -10
+        yPosChangePerFrame: 0
     },
     {
         xPos: screenWidth * 0.5,
         yPos: screenHeight - PIXEL_SHIM,
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: -10
+        yPosChangePerFrame: 0
     }
 
 ]
@@ -56,25 +57,25 @@ let redTeam = [
         xPos: screenWidth * 0.5,
         yPos: (screenHeight * 0.5) - (PIXEL_SHIM * 3),
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: 20
+        yPosChangePerFrame: 0
     },
     {
         xPos: screenWidth * 0.2,
         yPos: screenHeight * 0.25,
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: 20
+        yPosChangePerFrame: 0
     },
     {
         xPos: screenWidth * 0.8,
         yPos: screenHeight * 0.25,
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: 20
+        yPosChangePerFrame: 0
     },
     {
         xPos: screenWidth * 0.5,
         yPos: PIXEL_SHIM,
         xPosChangePerFrame: 0,
-        yPosChangePerFrame: 20
+        yPosChangePerFrame: 0
     },
 ]
 let touch1 = {
@@ -87,6 +88,8 @@ let touch2 = {
 }
 let isSendingBall = false
 let isSendingPlayer = false
+let sentPlayerIndex = 0
+let sentPlayerFramesLeft = 0
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
@@ -128,6 +131,11 @@ function drawBall() {
 }
 
 function drawPlayers() {
+    if (sentPlayerFramesLeft > 0) {
+        blueTeam[sentPlayerIndex].xPos += blueTeam[sentPlayerIndex].xPosChangePerFrame
+        blueTeam[sentPlayerIndex].yPos += blueTeam[sentPlayerIndex].yPosChangePerFrame
+        sentPlayerFramesLeft -= 1
+    }
     for (let i = 0; i < blueTeam.length; i++) {
         let bluePlayer = blueTeam[i]
         context.beginPath()
@@ -161,6 +169,7 @@ function handleTouchstart(event) {
             }
             else {
                 isSendingPlayer = true
+                sentPlayerIndex = i
             }
         }
     }
@@ -170,9 +179,15 @@ function handleTouchmove(event) {
     event.preventDefault()
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
+    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * 0.1
+    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * 0.1
     if (isSendingBall) {
-        ball.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * .1
-        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * .1
+        ball.xPosChangePerFrame = xPosChangePerFrame
+        ball.yPosChangePerFrame = yPosChangePerFrame
+    } else if (isSendingPlayer) {
+        blueTeam[sentPlayerIndex].xPosChangePerFrame = xPosChangePerFrame
+        blueTeam[sentPlayerIndex].yPosChangePerFrame = yPosChangePerFrame
+        sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
     }
 }
 
