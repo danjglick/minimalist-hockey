@@ -6,7 +6,7 @@ const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_MULTIPLIER = 0.005
 const FAST_MULTIPLIER = 0.05
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
-const FRAMES_BETWEEN_DESTINATION_RESETS = 100
+const FRAMES_BETWEEN_SPOT_SETTINGS = 100
 
 let canvas;
 let context;
@@ -113,24 +113,6 @@ function initializeGame() {
     gameLoop()
 }
 
-function gameLoop() {
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    drawGoals()
-    drawBall()
-    drawPlayers()
-    if (!isPaused) {
-        if (frameCount % FRAMES_BETWEEN_DESTINATION_RESETS === 0 || frameCount === 0) {
-            setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
-            setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
-        }
-        movePlayers()
-        moveBall()
-        stopBallIfIntercepted()
-        frameCount += 1
-    }
-    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
-}
-
 function handleTouchstart(event) {
     touch1.xPos = event.touches[0].clientX
     touch1.yPos = event.touches[0].clientY
@@ -170,6 +152,24 @@ function handleTouchmove(event) {
         sentPlayer.yPosChangePerFrame = yPosChangePerFrame
         sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
     }
+}
+
+function gameLoop() {
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    drawGoals()
+    drawBall()
+    drawPlayers()
+    if (!isPaused) {
+        frameCount += 1
+        if (frameCount % FRAMES_BETWEEN_SPOT_SETTINGS === 0 || frameCount === 0) {
+            setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
+            setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
+        }
+        movePlayers()
+        moveBall()
+        stopBallIfIntercepted()
+    }
+    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
 function drawGoals() {
@@ -291,6 +291,22 @@ function stopBallIfIntercepted() {
             ball.xPosChangePerFrame = 0
             ball.yPosChangePerFrame = 0
             ballPossessor = player
+            setOffensiveAndDefensiveTeams()
+        }
+    }
+}
+
+function setOffensiveAndDefensiveTeams() {
+    for (let i = 0; i < players.blue.length; i++) {
+        if (ballPossessor === players.blue[i]) {
+            offensiveTeam = players.blue
+            defensiveTeam = players.red
+        }
+    }
+    for (let i = 0; i < players.red.length; i++) {
+        if (ballPossessor === players.red[i]) {
+            offensiveTeam = players.red
+            defensiveTeam = players.blue
         }
     }
 }
