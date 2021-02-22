@@ -3,8 +3,8 @@ const BALL_RADIUS = 10
 const PLAYER_RADIUS = 20
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
-const SLOW_MULTIPLIER = 0.005
-const FAST_MULTIPLIER = 0.05
+const PLAYER_SPEED_MULTIPLIER = 0.005
+const BALL_SPEED_MULTIPLIER = 0.05
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
 const FRAMES_BETWEEN_SPOT_SETTINGS = 100
 
@@ -140,16 +140,14 @@ function handleTouchmove(event) {
     event.preventDefault()
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
-    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * FAST_MULTIPLIER
-    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * FAST_MULTIPLIER
     if (isSendingBall) {
         isPaused = false
-        ball.xPosChangePerFrame = xPosChangePerFrame
-        ball.yPosChangePerFrame = yPosChangePerFrame
+        ball.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * BALL_SPEED_MULTIPLIER
+        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * BALL_SPEED_MULTIPLIERX
         ballPossessor = {}
     } else if (isSendingPlayer) {
-        sentPlayer.xPosChangePerFrame = xPosChangePerFrame
-        sentPlayer.yPosChangePerFrame = yPosChangePerFrame
+        sentPlayer.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * PLAYER_SPEED_MULTIPLIER
+        sentPlayer.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * PLAYER_SPEED_MULTIPLIER
         sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
     }
 }
@@ -265,8 +263,8 @@ function setTeamTowardsSpots(team, spots) {
         let spot = spots[i]
         let player = team[i]
         if (player !== sentPlayer) {
-            player.xPosChangePerFrame = (spot.xPos - player.xPos) * SLOW_MULTIPLIER
-            player.yPosChangePerFrame = (spot.yPos - player.yPos) * SLOW_MULTIPLIER
+            player.xPosChangePerFrame = (spot.xPos - player.xPos) * PLAYER_SPEED_MULTIPLIER
+            player.yPosChangePerFrame = (spot.yPos - player.yPos) * PLAYER_SPEED_MULTIPLIER
         }
     }
 }
