@@ -3,7 +3,7 @@ const BALL_RADIUS = 10
 const PLAYER_RADIUS = 20
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
-const SPRINTING_SPEED_MULTIPLIER = 0.05
+const SPRINTING_SPEED_MULTIPLIER = .1 //0.05
 const JOGGING_SPEED_MULTIPLIER = 0.005
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
 
@@ -94,11 +94,12 @@ let touch2 = {
 }
 let isSendingBall = false
 let isSendingPlayer = false
-let sentPlayerIndex;
+let sentPlayer = {}
 let sentPlayerFramesLeft = 0
 let isPaused = true
 let ballPossessor = {}
 let offensiveTeam = players.blue
+let defensiveTeam = players.red
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
@@ -127,7 +128,7 @@ function handleTouchstart(event) {
             }
             else {
                 isSendingPlayer = true
-                sentPlayerIndex = i
+                sentPlayer = bluePlayer
             }
         }
     }
@@ -145,8 +146,8 @@ function handleTouchmove(event) {
         ball.yPosChangePerFrame = yPosChangePerFrame
         ballPossessor = {}
     } else if (isSendingPlayer) {
-        players.blue[sentPlayerIndex].xPosChangePerFrame = xPosChangePerFrame
-        players.blue[sentPlayerIndex].yPosChangePerFrame = yPosChangePerFrame
+        sentPlayer.xPosChangePerFrame = xPosChangePerFrame
+        sentPlayer.yPosChangePerFrame = yPosChangePerFrame
         sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
     }
 }
@@ -159,6 +160,7 @@ function gameLoop() {
     if (!isPaused) {
         movePlayers()
         moveBall()
+        stopBallIfIntercepted()
     }
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
@@ -199,31 +201,26 @@ function drawPlayers() {
 }
 
 function movePlayers() {
-    setTeamTowardsBestOffensiveSpots(players.blue, getBestOffensiveSpots())
+    setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
+    setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
     if (sentPlayerFramesLeft > 0) {
-        let sentPlayer = players.blue[sentPlayerIndex]
+        let sentPlayer = sentPlayer
         sentPlayer.xPos += sentPlayer.xPosChangePerFrame
         sentPlayer.yPos += sentPlayer.yPosChangePerFrame
         sentPlayerFramesLeft--
     }
     for (let i = 0; i < players.blue.length; i++) {
-        let player = players.blue[i]
-        player.xPos += player.xPosChangePerFrame
-        player.yPos += player.yPosChangePerFrame
-        stopObjectIfOut(player)
+        let bluePlayer = players.blue[i]
+        bluePlayer.xPos += bluePlayer.xPosChangePerFrame
+        bluePlayer.yPos += bluePlayer.yPosChangePerFrame
+        stopObjectIfOut(bluePlayer)
     }
-
-}
-
-function moveBall() {
-    if (Object.keys(ballPossessor).length > 0) {
-        ball.xPosChangePerFrame = ballPossessor.xPosChangePerFrame
-        ball.yPosChangePerFrame = ballPossessor.yPosChangePerFrame
+    for (let i = 0; i < players.red.length; i++) {
+        let redPlayer = players.red[i]
+        redPlayer.xPos += redPlayer.xPosChangePerFrame
+        redPlayer.yPos += redPlayer.yPosChangePerFrame
+        stopObjectIfOut(redPlayer)
     }
-    ball.xPos += ball.xPosChangePerFrame
-    ball.yPos += ball.yPosChangePerFrame
-    stopObjectIfOut(ball)
-    stopBallIfIntercepted()
 }
 
 function getBestOffensiveSpots() {
@@ -248,13 +245,36 @@ function getBestOffensiveSpots() {
     return bestOffensiveSpots
 }
 
-function setTeamTowardsBestOffensiveSpots(team, bestOffensiveSpots) {
-    for (let i = 0; i < bestOffensiveSpots.length; i++) {
-        let player = team[i]
-        if (i === sentPlayerIndex) continue
-        player.xPosChangePerFrame = (bestOffensiveSpots[i].xPos - player.xPos) * JOGGING_SPEED_MULTIPLIER
-        player.yPosChangePerFrame = (bestOffensiveSpots[i].yPos - player.yPos) * JOGGING_SPEED_MULTIPLIER
+function getBestDefensiveSpots() {
+    let bestDefensiveSpots = []
+    for (let i = 0; i < defensiveTeam.length - 1; i++) {
+        bestDefensiveSpots.push({
+            xPos: offensiveTeam[i].xPos,
+            yPos: offensiveTeam[i].yPos
+        })
     }
+    return bestDefensiveSpots
+}
+
+function setTeamTowardsSpots(team, spots) {
+    for (let i = 0; i < spots.length; i++) {
+        let spot = spots[i]
+        let player = team[i]
+        if (player !== sentPlayer) {
+            player.xPosChangePerFrame = (spot.xPos - player.xPos) * JOGGING_SPEED_MULTIPLIER
+            player.yPosChangePerFrame = (spot.yPos - player.yPos) * JOGGING_SPEED_MULTIPLIER
+        }
+    }
+}
+
+function moveBall() {
+    if (Object.keys(ballPossessor).length > 0) {
+        ball.xPosChangePerFrame = ballPossessor.xPosChangePerFrame
+        ball.yPosChangePerFrame = ballPossessor.yPosChangePerFrame
+    }
+    ball.xPos += ball.xPosChangePerFrame
+    ball.yPos += ball.yPosChangePerFrame
+    stopObjectIfOut(ball)
 }
 
 function stopBallIfIntercepted() {
