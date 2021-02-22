@@ -98,7 +98,7 @@ let sentPlayerIndex;
 let sentPlayerFramesLeft = 0
 let isPaused = true
 let ballPossessor = {}
-let offensiveTeam = []
+let offensiveTeam = players.blue
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
@@ -108,56 +108,6 @@ function initializeGame() {
     document.addEventListener("touchstart", handleTouchstart)
     document.addEventListener("touchmove", handleTouchmove, {passive: false})
     gameLoop()
-}
-
-function gameLoop() {
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    drawGoals()
-    drawBall()
-    drawPlayers()
-    if (!isPaused) {
-        setTeamTowardsBestOffensiveSpots(players.blue, getBestOffensiveSpots())
-        movePlayers()
-        moveBall()
-        stopBallIfIntercepted()
-        stopBallIfOut()
-    }
-    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
-}
-
-function drawGoals() {
-    context.beginPath()
-    context.rect(goals.red.xPos, goals.red.yPos, screenWidth / 2, screenHeight / 100)
-    context.fillStyle = "white"
-    context.fill()
-    context.beginPath()
-    context.rect(goals.blue.xPos, goals.blue.yPos, screenWidth / 2, screenHeight / 100)
-    context.fillStyle = "white"
-    context.fill()
-}
-
-function drawBall() {
-    context.beginPath()
-    context.arc(ball.xPos, ball.yPos, BALL_RADIUS, 0, 2 * Math.PI)
-    context.fillStyle = "white"
-    context.fill()
-}
-
-function drawPlayers() {
-    for (let i = 0; i < players.blue.length; i++) {
-        let bluePlayer = players.blue[i]
-        context.beginPath()
-        context.arc(bluePlayer.xPos, bluePlayer.yPos, PLAYER_RADIUS, 0, 2 * Math.PI)
-        context.fillStyle = "Cornflowerblue"
-        context.fill()
-    }
-    for (let i = 0; i < players.red.length; i++) {
-        let redPlayer = players.red[i]
-        context.beginPath()
-        context.arc(redPlayer.xPos, redPlayer.yPos, PLAYER_RADIUS, 0, 2 * Math.PI)
-        context.fillStyle = "indianRed"
-        context.fill()
-    }
 }
 
 function handleTouchstart(event) {
@@ -201,6 +151,53 @@ function handleTouchmove(event) {
     }
 }
 
+function gameLoop() {
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    drawGoals()
+    drawBall()
+    drawPlayers()
+    if (!isPaused) {
+        movePlayers()
+        moveBall()
+    }
+    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
+}
+
+function drawGoals() {
+    context.beginPath()
+    context.rect(goals.red.xPos, goals.red.yPos, screenWidth / 2, screenHeight / 100)
+    context.fillStyle = "white"
+    context.fill()
+    context.beginPath()
+    context.rect(goals.blue.xPos, goals.blue.yPos, screenWidth / 2, screenHeight / 100)
+    context.fillStyle = "white"
+    context.fill()
+}
+
+function drawBall() {
+    context.beginPath()
+    context.arc(ball.xPos, ball.yPos, BALL_RADIUS, 0, 2 * Math.PI)
+    context.fillStyle = "white"
+    context.fill()
+}
+
+function drawPlayers() {
+    for (let i = 0; i < players.blue.length; i++) {
+        let bluePlayer = players.blue[i]
+        context.beginPath()
+        context.arc(bluePlayer.xPos, bluePlayer.yPos, PLAYER_RADIUS, 0, 2 * Math.PI)
+        context.fillStyle = "Cornflowerblue"
+        context.fill()
+    }
+    for (let i = 0; i < players.red.length; i++) {
+        let redPlayer = players.red[i]
+        context.beginPath()
+        context.arc(redPlayer.xPos, redPlayer.yPos, PLAYER_RADIUS, 0, 2 * Math.PI)
+        context.fillStyle = "indianRed"
+        context.fill()
+    }
+}
+
 function getBestOffensiveSpots() {
     let bestOffensiveSpots = []
     for (let xPos = PLAYER_RADIUS * 2; xPos < screenWidth; xPos++) {
@@ -209,7 +206,7 @@ function getBestOffensiveSpots() {
                 xPos: xPos,
                 yPos: yPos,
             }
-            let distanceFromGoal = (offensiveTeam === players.red ? -yPos : yPos)
+            let distanceFromGoal = (offensiveTeam === players.blue ? yPos : -yPos)
             if (isObjectFarFromObjects(spot, players.blue.concat(players.red).concat(bestOffensiveSpots))) {
                 for (let i = 0; i < players.blue.length - 1; i++) {
                     if (!bestOffensiveSpots[i] || distanceFromGoal < bestOffensiveSpots[i].yPos) {
@@ -233,17 +230,20 @@ function setTeamTowardsBestOffensiveSpots(team, bestOffensiveSpots) {
 }
 
 function movePlayers() {
-    if (sentPlayerFramesLeft > 0) { //deal with this
+    setTeamTowardsBestOffensiveSpots(players.blue, getBestOffensiveSpots())
+    if (sentPlayerFramesLeft > 0) {
         let sentPlayer = players.blue[sentPlayerIndex]
         sentPlayer.xPos += sentPlayer.xPosChangePerFrame
         sentPlayer.yPos += sentPlayer.yPosChangePerFrame
         sentPlayerFramesLeft--
     }
     for (let i = 0; i < players.blue.length; i++) {
-        let bluePlayer = players.blue[i]
-        bluePlayer.xPos += bluePlayer.xPosChangePerFrame
-        bluePlayer.yPos += bluePlayer.yPosChangePerFrame
+        let player = players.blue[i]
+        player.xPos += player.xPosChangePerFrame
+        player.yPos += player.yPosChangePerFrame
+        stopObjectIfOut(player)
     }
+
 }
 
 function moveBall() {
@@ -253,6 +253,8 @@ function moveBall() {
     }
     ball.xPos += ball.xPosChangePerFrame
     ball.yPos += ball.yPosChangePerFrame
+    stopObjectIfOut(ball)
+    stopBallIfIntercepted()
 }
 
 function stopBallIfIntercepted() {
@@ -269,10 +271,10 @@ function stopBallIfIntercepted() {
     }
 }
 
-function stopBallIfOut() {
-    if (ball.xPos <= PIXEL_SHIM || ball.xPos >= screenWidth - PIXEL_SHIM || ball.yPos <= 0 || ball.yPos >= screenHeight - PIXEL_SHIM) {
-        ball.xPosChangePerFrame = 0
-        ball.yPosChangePerFrame = 0
+function stopObjectIfOut(object) {
+    if (object.xPos <= PIXEL_SHIM || object.xPos >= screenWidth - PIXEL_SHIM || object.yPos <= 0 || object.yPos >= screenHeight - PIXEL_SHIM) {
+        object.xPosChangePerFrame = 0
+        object.yPosChangePerFrame = 0
     }
 }
 
