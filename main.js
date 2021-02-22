@@ -161,7 +161,7 @@ function gameLoop() {
     drawPlayers()
     if (!isPaused) {
         frameCount += 1
-        if (frameCount % FRAMES_BETWEEN_SPOT_SETTINGS === 0 || frameCount === 0) {
+        if (frameCount % FRAMES_BETWEEN_SPOT_SETTINGS === 0 || frameCount === 1) {
             setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
             setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
         }
