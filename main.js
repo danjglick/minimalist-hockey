@@ -204,7 +204,6 @@ function movePlayers() {
     setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
     setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
     if (sentPlayerFramesLeft > 0) {
-        let sentPlayer = sentPlayer
         sentPlayer.xPos += sentPlayer.xPosChangePerFrame
         sentPlayer.yPos += sentPlayer.yPosChangePerFrame
         sentPlayerFramesLeft--
