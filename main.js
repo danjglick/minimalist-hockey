@@ -3,9 +3,10 @@ const BALL_RADIUS = 10
 const PLAYER_RADIUS = 20
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
-const SPRINTING_SPEED_MULTIPLIER = 0.05
-const JOGGING_SPEED_MULTIPLIER = 0.005
+const SLOW_MULTIPLIER = 0.005
+const FAST_MULTIPLIER = 0.05
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
+const FRAMES_BETWEEN_DESTINATION_RESETS = 100
 
 let canvas;
 let context;
@@ -100,6 +101,7 @@ let isPaused = true
 let ballPossessor = {}
 let offensiveTeam = players.blue
 let defensiveTeam = players.red
+let frameCount = 0
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
@@ -109,6 +111,24 @@ function initializeGame() {
     document.addEventListener("touchstart", handleTouchstart)
     document.addEventListener("touchmove", handleTouchmove, {passive: false})
     gameLoop()
+}
+
+function gameLoop() {
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    drawGoals()
+    drawBall()
+    drawPlayers()
+    if (!isPaused) {
+        if (frameCount % FRAMES_BETWEEN_DESTINATION_RESETS === 0) {
+            setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
+            setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
+        }
+        movePlayers()
+        moveBall()
+        stopBallIfIntercepted()
+    }
+    frameCount++
+    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
 function handleTouchstart(event) {
@@ -138,8 +158,8 @@ function handleTouchmove(event) {
     event.preventDefault()
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
-    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * SPRINTING_SPEED_MULTIPLIER
-    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * SPRINTING_SPEED_MULTIPLIER
+    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * FAST_MULTIPLIER
+    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * FAST_MULTIPLIER
     if (isSendingBall) {
         isPaused = false
         ball.xPosChangePerFrame = xPosChangePerFrame
@@ -150,19 +170,6 @@ function handleTouchmove(event) {
         sentPlayer.yPosChangePerFrame = yPosChangePerFrame
         sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
     }
-}
-
-function gameLoop() {
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    drawGoals()
-    drawBall()
-    drawPlayers()
-    if (!isPaused) {
-        movePlayers()
-        moveBall()
-        stopBallIfIntercepted()
-    }
-    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
 function drawGoals() {
@@ -201,8 +208,6 @@ function drawPlayers() {
 }
 
 function movePlayers() {
-    setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
-    setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
     if (sentPlayerFramesLeft > 0) {
         sentPlayer.xPos += sentPlayer.xPosChangePerFrame
         sentPlayer.yPos += sentPlayer.yPosChangePerFrame
@@ -224,8 +229,8 @@ function movePlayers() {
 
 function getBestOffensiveSpots() {
     let bestOffensiveSpots = []
-    for (let xPos = PLAYER_RADIUS * 2; xPos < screenWidth; xPos++) {
-        for (let yPos = PLAYER_RADIUS * 2; yPos < screenHeight; yPos++) {
+    for (let xPos = PIXEL_SHIM; xPos < screenWidth; xPos++) {
+        for (let yPos = PIXEL_SHIM; yPos < screenHeight; yPos++) {
             let spot = {
                 xPos: xPos,
                 yPos: yPos,
@@ -260,8 +265,8 @@ function setTeamTowardsSpots(team, spots) {
         let spot = spots[i]
         let player = team[i]
         if (player !== sentPlayer) {
-            player.xPosChangePerFrame = (spot.xPos - player.xPos) * JOGGING_SPEED_MULTIPLIER
-            player.yPosChangePerFrame = (spot.yPos - player.yPos) * JOGGING_SPEED_MULTIPLIER
+            player.xPosChangePerFrame = (spot.xPos - player.xPos) * SLOW_MULTIPLIER
+            player.yPosChangePerFrame = (spot.yPos - player.yPos) * SLOW_MULTIPLIER
         }
     }
 }
