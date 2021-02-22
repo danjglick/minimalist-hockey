@@ -2,10 +2,10 @@ const MILLISECONDS_PER_FRAME = 16
 const BALL_RADIUS = 10
 const PLAYER_RADIUS = 20
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
-const FRAMES_PER_SENT_PLAYER = 7
-const FAST_MULTIPLIER = 0.03
-const SLOW_MULTIPLIER = 0.003
-const OPEN_SPACE_THRESHOLD = PLAYER_RADIUS * 5
+const FRAMES_PER_SENT_PLAYER = 3
+const SPRINTING_SPEED_MULTIPLIER = 0.05
+const JOGGING_SPEED_MULTIPLIER = 0.003
+const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
 
 let canvas;
 let context;
@@ -96,7 +96,6 @@ let isSendingBall = false
 let isSendingPlayer = false
 let sentPlayerIndex;
 let sentPlayerFramesLeft = 0
-let bestOffensiveSpots = []
 let isPaused = true
 let ballPossessor = {}
 let offensiveTeam = []
@@ -117,8 +116,7 @@ function gameLoop() {
     drawBall()
     drawPlayers()
     if (!isPaused) {
-        setBestOffensiveSpots()
-        setTeamTowardsBestOffensiveSpots(players.blue)
+        setTeamTowardsBestOffensiveSpots(players.blue, getBestOffensiveSpots())
         movePlayers()
         moveBall()
         stopBallIfIntercepted()
@@ -189,8 +187,8 @@ function handleTouchmove(event) {
     event.preventDefault()
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
-    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * FAST_MULTIPLIER
-    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * FAST_MULTIPLIER
+    let xPosChangePerFrame = (touch2.xPos - touch1.xPos) * SPRINTING_SPEED_MULTIPLIER
+    let yPosChangePerFrame = (touch2.yPos - touch1.yPos) * SPRINTING_SPEED_MULTIPLIER
     if (isSendingBall) {
         isPaused = false
         ball.xPosChangePerFrame = xPosChangePerFrame
@@ -203,7 +201,8 @@ function handleTouchmove(event) {
     }
 }
 
-function setBestOffensiveSpots() {
+function getBestOffensiveSpots() {
+    let bestOffensiveSpots = []
     for (let xPos = PLAYER_RADIUS * 2; xPos < screenWidth; xPos++) {
         for (let yPos = PLAYER_RADIUS * 2; yPos < screenHeight; yPos++) {
             let spot = {
@@ -221,14 +220,15 @@ function setBestOffensiveSpots() {
             }
         }
     }
+    return bestOffensiveSpots
 }
 
-function setTeamTowardsBestOffensiveSpots(team) {
+function setTeamTowardsBestOffensiveSpots(team, bestOffensiveSpots) {
     for (let i = 0; i < bestOffensiveSpots.length; i++) {
-        if (i === sentPlayerIndex) continue
         let player = team[i]
-        player.xPosChangePerFrame = (bestOffensiveSpots[i].xPos - player.xPos) * SLOW_MULTIPLIER
-        player.yPosChangePerFrame = (bestOffensiveSpots[i].yPos - player.yPos) * SLOW_MULTIPLIER
+        if (i === sentPlayerIndex) continue
+        player.xPosChangePerFrame = (bestOffensiveSpots[i].xPos - player.xPos) * JOGGING_SPEED_MULTIPLIER
+        player.yPosChangePerFrame = (bestOffensiveSpots[i].yPos - player.yPos) * JOGGING_SPEED_MULTIPLIER
     }
 }
 
@@ -278,7 +278,7 @@ function stopBallIfOut() {
 
 function isObjectFarFromObjects(object, objects) {
     for (let i = 0; i < objects.length; i++) {
-        if (Math.abs(object.xPos - objects[i].xPos) < OPEN_SPACE_THRESHOLD && Math.abs(object.yPos - objects[i].yPos) < OPEN_SPACE_THRESHOLD) {
+        if (Math.abs(object.xPos - objects[i].xPos) < FARNESS_THRESHOLD && Math.abs(object.yPos - objects[i].yPos) < FARNESS_THRESHOLD) {
             return false
         }
     }
