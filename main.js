@@ -143,7 +143,7 @@ function handleTouchmove(event) {
     if (isSendingBall) {
         isPaused = false
         ball.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * BALL_SPEED_MULTIPLIER
-        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * BALL_SPEED_MULTIPLIERX
+        ball.yPosChangePerFrame = (touch2.yPos - touch1.yPos) * BALL_SPEED_MULTIPLIER
         ballPossessor = {}
     } else if (isSendingPlayer) {
         sentPlayer.xPosChangePerFrame = (touch2.xPos - touch1.xPos) * PLAYER_SPEED_MULTIPLIER
