@@ -119,15 +119,15 @@ function gameLoop() {
     drawBall()
     drawPlayers()
     if (!isPaused) {
-        if (frameCount % FRAMES_BETWEEN_DESTINATION_RESETS === 0) {
+        if (frameCount % FRAMES_BETWEEN_DESTINATION_RESETS === 0 || frameCount === 0) {
             setTeamTowardsSpots(offensiveTeam, getBestOffensiveSpots())
             setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
         }
         movePlayers()
         moveBall()
         stopBallIfIntercepted()
+        frameCount += 1
     }
-    frameCount++
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
