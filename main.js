@@ -1,10 +1,3 @@
-// go to loose ball
-// goalies
-// bounce collisions
-// fix red team getting stuck bug
-// red-team send-ball
-// fix stealing
-
 const MILLISECONDS_PER_FRAME = 16
 const BALL_RADIUS = 12.5
 const PLAYER_RADIUS = 25
@@ -218,10 +211,6 @@ function drawPlayers() {
         context.fillStyle = "indianRed"
         context.fill()
     }
-}
-
-function getPlayerClosestToBallByTeam(team) {
-
 }
 
 function movePlayers() {
