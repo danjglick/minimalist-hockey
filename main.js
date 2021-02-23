@@ -351,9 +351,9 @@ function setOffensiveAndDefensiveTeams() {
 
 function bounceObjectIfOut(object) {
     if (object.xPos <= PIXEL_SHIM || object.xPos >= screenWidth - PIXEL_SHIM) {
-        object.xPosChangePerFrame = -object.xPosChangePerFrame
+        object.xPosChangePerFrame = -object.xPosChangePerFrame * 0.75
     } else if (object.yPos <= PIXEL_SHIM || object.yPos >= screenHeight - PIXEL_SHIM) {
-        object.yPosChangePerFrame = -object.yPosChangePerFrame
+        object.yPosChangePerFrame = -object.yPosChangePerFrame * 0.75
     }
 }
 
