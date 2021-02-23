@@ -1,11 +1,22 @@
+// red-team offense
+// tackles, stop player if intercepted
+// goalies
+// tap in open space to move player
+// dead bounce bug, off by one border bug
+// count goals
+// menu
+// difficulty bar
+// polish
+// release
+
 const MILLISECONDS_PER_FRAME = 16
-const BALL_RADIUS = 10
+const BALL_RADIUS = 12.5
 const PLAYER_RADIUS = 25
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_MULTIPLIER = 0.005
 const FAST_MULTIPLIER = 0.05
-const BOUNCE_SPEED_MULTIPLIER = 0.75
+const DECELERATION = 0.75
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
 
@@ -30,7 +41,6 @@ let ball = {
     xPosChangePerFrame: 0,
     yPosChangePerFrame: 0
 }
-
 let players = {
     blue: [
         {
@@ -127,9 +137,18 @@ function gameLoop() {
         }
         movePlayers()
         moveBall()
+        // if (offensiveTeam == players.red) decideOffensiveMove()
     }
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
+
+// function decideOffensiveMove() {
+//      if (open pass ahead) pass
+//      else if (open space ahead) dribble
+//      else if (open goal ahead) shoot
+//      else if (open pass behind) pass
+//      else dribble
+// }
 
 function drawGoals() {
     context.beginPath()
@@ -171,17 +190,6 @@ function setPlayersTowardsBestSpots() {
     setTeamTowardsSpots(defensiveTeam, getBestDefensiveSpots())
 }
 
-function setTeamTowardsSpots(team, spots) {
-    for (let i = 0; i < spots.length; i++) {
-        let spot = spots[i]
-        let player = team[i]
-        if (player !== sentPlayer) {
-            player.xPosChangePerFrame = (spot.xPos - player.xPos) * SLOW_MULTIPLIER
-            player.yPosChangePerFrame = (spot.yPos - player.yPos) * SLOW_MULTIPLIER
-        }
-    }
-}
-
 function getBestOffensiveSpots() {
     let bestOffensiveSpots = []
     for (let xPos = PIXEL_SHIM; xPos < screenWidth; xPos++) {
@@ -213,6 +221,17 @@ function getBestDefensiveSpots() {
         })
     }
     return bestDefensiveSpots
+}
+
+function setTeamTowardsSpots(team, spots) {
+    for (let i = 0; i < spots.length; i++) {
+        let spot = spots[i]
+        let player = team[i]
+        if (player !== sentPlayer) {
+            player.xPosChangePerFrame = (spot.xPos - player.xPos) * SLOW_MULTIPLIER
+            player.yPosChangePerFrame = (spot.yPos - player.yPos) * SLOW_MULTIPLIER
+        }
+    }
 }
 
 function handleTouchstart(event) {
@@ -352,9 +371,9 @@ function setOffensiveAndDefensiveTeams() {
 
 function bounceObjectIfOut(object) {
     if (object.xPos <= PIXEL_SHIM || object.xPos >= screenWidth - PIXEL_SHIM) {
-        object.xPosChangePerFrame = -object.xPosChangePerFrame * BOUNCE_SPEED_MULTIPLIER
+        object.xPosChangePerFrame = -object.xPosChangePerFrame * DECELERATION
     } else if (object.yPos <= PIXEL_SHIM || object.yPos >= screenHeight - PIXEL_SHIM) {
-        object.yPosChangePerFrame = -object.yPosChangePerFrame * BOUNCE_SPEED_MULTIPLIER
+        object.yPosChangePerFrame = -object.yPosChangePerFrame * DECELERATION
     }
 }
 
