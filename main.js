@@ -1,5 +1,12 @@
+// go to loose ball
+// goalies
+// bounce collisions
+// fix red team getting stuck bug
+// red-team send-ball
+// fix stealing
+
 const MILLISECONDS_PER_FRAME = 16
-const BALL_RADIUS = 10
+const BALL_RADIUS = 12.5
 const PLAYER_RADIUS = 25
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
