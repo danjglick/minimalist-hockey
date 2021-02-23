@@ -294,7 +294,7 @@ function movePlayers() {
             }
             player.xPos += player.xPosChangePerFrame
             player.yPos += player.yPosChangePerFrame
-            stopObjectIfOut(player)
+            bounceObjectIfOut(player)
         }
         playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * SLOW_MULTIPLIER
         playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * SLOW_MULTIPLIER
@@ -310,7 +310,7 @@ function moveBall() {
     }
     ball.xPos += ball.xPosChangePerFrame
     ball.yPos += ball.yPosChangePerFrame
-    stopObjectIfOut(ball)
+    bounceObjectIfOut(ball)
     stopBallIfIntercepted()
 }
 
@@ -349,10 +349,11 @@ function setOffensiveAndDefensiveTeams() {
     }
 }
 
-function stopObjectIfOut(object) {
-    if (object.xPos <= PIXEL_SHIM || object.xPos >= screenWidth - PIXEL_SHIM || object.yPos <= 0 || object.yPos >= screenHeight - PIXEL_SHIM) {
-        object.xPosChangePerFrame = 0
-        object.yPosChangePerFrame = 0
+function bounceObjectIfOut(object) {
+    if (object.xPos <= PIXEL_SHIM || object.xPos >= screenWidth - PIXEL_SHIM) {
+        object.xPosChangePerFrame = -object.xPosChangePerFrame
+    } else if (object.yPos <= PIXEL_SHIM || object.yPos >= screenHeight - PIXEL_SHIM) {
+        object.yPosChangePerFrame = -object.yPosChangePerFrame
     }
 }
 
