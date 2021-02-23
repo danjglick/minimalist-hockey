@@ -1,10 +1,11 @@
 const MILLISECONDS_PER_FRAME = 16
-const BALL_RADIUS = 12.5
+const BALL_RADIUS = 10
 const PLAYER_RADIUS = 25
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_MULTIPLIER = 0.005
 const FAST_MULTIPLIER = 0.05
+const BOUNCE_SPEED_MULTIPLIER = 0.75
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
 
@@ -351,9 +352,9 @@ function setOffensiveAndDefensiveTeams() {
 
 function bounceObjectIfOut(object) {
     if (object.xPos <= PIXEL_SHIM || object.xPos >= screenWidth - PIXEL_SHIM) {
-        object.xPosChangePerFrame = -object.xPosChangePerFrame * 0.75
+        object.xPosChangePerFrame = -object.xPosChangePerFrame * BOUNCE_SPEED_MULTIPLIER
     } else if (object.yPos <= PIXEL_SHIM || object.yPos >= screenHeight - PIXEL_SHIM) {
-        object.yPosChangePerFrame = -object.yPosChangePerFrame * 0.75
+        object.yPosChangePerFrame = -object.yPosChangePerFrame * BOUNCE_SPEED_MULTIPLIER
     }
 }
 
