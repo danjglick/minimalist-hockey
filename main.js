@@ -1,5 +1,3 @@
-// write setObject[s]TowardsSpot[s]AtSpeed(object[s], spot[s], speed) and clean comments
-// may want to implement avoidance of defenders on path
 // red-team offense
 // tackles, stop player if intercepted
 // goalies
@@ -133,6 +131,27 @@ function handleTouchstart(event) {
     determineIfSendingPlayerOrBall()
 }
 
+function determineIfSendingPlayerOrBall() {
+    isSendingBall = false
+    isSendingPlayer = false
+    for (let i = 0; i < players.blue.length; i++) {
+        let bluePlayer = players.blue[i]
+        let isTouchHorizontallyAlignedWithPlayer = (touch1.xPos > bluePlayer.xPos - PLAYER_RADIUS) && (touch1.xPos < bluePlayer.xPos + PLAYER_RADIUS)
+        let isTouchVerticallyAlignedWithPlayer = (touch1.yPos > bluePlayer.yPos - PLAYER_RADIUS) && (touch1.yPos < bluePlayer.yPos + PLAYER_RADIUS)
+        if (isTouchHorizontallyAlignedWithPlayer && isTouchVerticallyAlignedWithPlayer) {
+            let isPlayerHorizontallyAlignedWithBall = Math.abs(bluePlayer.xPos - ball.xPos) <= PIXEL_SHIM
+            let isPlayerVerticallyAlignedWithBall = Math.abs(bluePlayer.yPos - ball.yPos) <= PIXEL_SHIM
+            if (isPlayerHorizontallyAlignedWithBall && isPlayerVerticallyAlignedWithBall) {
+                isSendingBall = true
+            }
+            else {
+                isSendingPlayer = true
+                sentPlayer = bluePlayer
+            }
+        }
+    }
+}
+
 function handleTouchmove(event) {
     event.preventDefault()
     touch2.xPos = event.touches[0].clientX
@@ -146,6 +165,11 @@ function handleTouchmove(event) {
         setObjectTowardsSpotAtSpeed(sentPlayer, touch2, FAST_SPEED)
         sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
     }
+}
+
+function setObjectTowardsSpotAtSpeed(object, spot, speed) {
+    object.xPosChangePerFrame = (spot.xPos - object.xPos) * speed
+    object.yPosChangePerFrame = (spot.yPos - object.yPos) * speed
 }
 
 function gameLoop() {
@@ -210,6 +234,48 @@ function setPlayerPaths() {
     }
 }
 
+function getBestOffensiveSpots() {
+    let bestOffensiveSpots = []
+    for (let xPos = PIXEL_SHIM; xPos < screenWidth; xPos++) {
+        for (let yPos = PIXEL_SHIM; yPos < screenHeight; yPos++) {
+            let spot = {
+                xPos: xPos,
+                yPos: yPos,
+            }
+            let distanceFromGoal = (offensiveTeam === players.blue ? yPos : -yPos)
+            if (isObjectDistanceFromObjects(spot, FARNESS_THRESHOLD, players.blue.concat(players.red).concat(bestOffensiveSpots))) {
+                for (let i = 0; i < players.blue.length - 1; i++) {
+                    if (!bestOffensiveSpots[i] || distanceFromGoal < bestOffensiveSpots[i].yPos) {
+                        bestOffensiveSpots[i] = spot
+                        break
+                    }
+                }
+            }
+        }
+    }
+    return bestOffensiveSpots
+}
+
+function isObjectDistanceFromObjects(object, distance, objects) {
+    for (let i = 0; i < objects.length; i++) {
+        if (Math.abs(object.xPos - objects[i].xPos) < distance && Math.abs(object.yPos - objects[i].yPos) < distance) {
+            return false
+        }
+    }
+    return true
+}
+
+function getBestDefensiveSpots() {
+    let bestDefensiveSpots = []
+    for (let i = 0; i < defensiveTeam.length - 1; i++) {
+        bestDefensiveSpots.push({
+            xPos: offensiveTeam[i].xPos,
+            yPos: offensiveTeam[i].yPos
+        })
+    }
+    return bestDefensiveSpots
+}
+
 // function setBallPath() {
 //      if (open pass ahead) pass
 //      else if (open space ahead) dribble
@@ -251,6 +317,14 @@ function movePlayers() {
     }
 }
 
+function bounceObjectIfOut(object) {
+    if (object.xPos <= 0 || object.xPos >= screenWidth) {
+        object.xPosChangePerFrame = -object.xPosChangePerFrame * DECELERATION
+    } else if (object.yPos <= 0 || object.yPos >= screenHeight) {
+        object.yPosChangePerFrame = -object.yPosChangePerFrame * DECELERATION
+    }
+}
+
 function moveBall() {
     if (Object.keys(ballPossessor).length > 0) {
         ball.xPosChangePerFrame = ballPossessor.xPosChangePerFrame
@@ -262,84 +336,13 @@ function moveBall() {
     stopBallIfIntercepted()
 }
 
-// helpers //
-
-function setObjectTowardsSpotAtSpeed(object, spot, speed) {
-    object.xPosChangePerFrame = (spot.xPos - object.xPos) * speed
-    object.yPosChangePerFrame = (spot.yPos - object.yPos) * speed
-}
-
-function isObjectDistanceFromObjects(object, distance, objects) {
-    for (let i = 0; i < objects.length; i++) {
-        if (Math.abs(object.xPos - objects[i].xPos) < distance && Math.abs(object.yPos - objects[i].yPos) < distance) {
-            return false
-        }
-    }
-    return true
-}
-
-function determineIfSendingPlayerOrBall() {
-    isSendingBall = false
-    isSendingPlayer = false
-    for (let i = 0; i < players.blue.length; i++) {
-        let bluePlayer = players.blue[i]
-        let isTouchHorizontallyAlignedWithPlayer = (touch1.xPos > bluePlayer.xPos - PLAYER_RADIUS) && (touch1.xPos < bluePlayer.xPos + PLAYER_RADIUS)
-        let isTouchVerticallyAlignedWithPlayer = (touch1.yPos > bluePlayer.yPos - PLAYER_RADIUS) && (touch1.yPos < bluePlayer.yPos + PLAYER_RADIUS)
-        if (isTouchHorizontallyAlignedWithPlayer && isTouchVerticallyAlignedWithPlayer) {
-            let isPlayerHorizontallyAlignedWithBall = Math.abs(bluePlayer.xPos - ball.xPos) <= PIXEL_SHIM
-            let isPlayerVerticallyAlignedWithBall = Math.abs(bluePlayer.yPos - ball.yPos) <= PIXEL_SHIM
-            if (isPlayerHorizontallyAlignedWithBall && isPlayerVerticallyAlignedWithBall) {
-                isSendingBall = true
-            }
-            else {
-                isSendingPlayer = true
-                sentPlayer = bluePlayer
-            }
-        }
-    }
-}
-
-function getBestOffensiveSpots() {
-    let bestOffensiveSpots = []
-    for (let xPos = PIXEL_SHIM; xPos < screenWidth; xPos++) {
-        for (let yPos = PIXEL_SHIM; yPos < screenHeight; yPos++) {
-            let spot = {
-                xPos: xPos,
-                yPos: yPos,
-            }
-            let distanceFromGoal = (offensiveTeam === players.blue ? yPos : -yPos)
-            if (isObjectDistanceFromObjects(spot, FARNESS_THRESHOLD, players.blue.concat(players.red).concat(bestOffensiveSpots))) {
-                for (let i = 0; i < players.blue.length - 1; i++) {
-                    if (!bestOffensiveSpots[i] || distanceFromGoal < bestOffensiveSpots[i].yPos) {
-                        bestOffensiveSpots[i] = spot
-                        break
-                    }
-                }
-            }
-        }
-    }
-    return bestOffensiveSpots
-}
-
-function getBestDefensiveSpots() {
-    let bestDefensiveSpots = []
-    for (let i = 0; i < defensiveTeam.length - 1; i++) {
-        bestDefensiveSpots.push({
-            xPos: offensiveTeam[i].xPos,
-            yPos: offensiveTeam[i].yPos
-        })
-    }
-    return bestDefensiveSpots
-}
-
-// consider making this more general - stopObjectIfIntercepted(object) - so that it can be used for players as well.
 function stopBallIfIntercepted() {
     for (let i = 0; i < players.blue.concat(players.red).length; i++) {
         let player = players.blue.concat(players.red)[i]
+        let isFarFromTouch1 = (Math.abs(player.xPos - touch1.xPos) > PLAYER_RADIUS) || (Math.abs(player.yPos - touch1.yPos) > PLAYER_RADIUS)
         let isHorizontallyAlignedWithPlayer = (ball.xPos > player.xPos - PLAYER_RADIUS) && (ball.xPos < player.xPos + PLAYER_RADIUS)
         let isVerticallyAlignedWithPlayer = (ball.yPos > player.yPos - PLAYER_RADIUS) && (ball.yPos < player.yPos + PLAYER_RADIUS)
-        let isFarFromTouch1 = (Math.abs(player.xPos - touch1.xPos) > PLAYER_RADIUS) || (Math.abs(player.yPos - touch1.yPos) > PLAYER_RADIUS)
-        if (isHorizontallyAlignedWithPlayer && isVerticallyAlignedWithPlayer && isFarFromTouch1 && !hasBeenIntercepted) {
+        if (!hasBeenIntercepted && isFarFromTouch1 && isHorizontallyAlignedWithPlayer && isVerticallyAlignedWithPlayer) {
             isSendingBall = false
             hasBeenIntercepted = true
             ball.xPosChangePerFrame = 0
@@ -365,13 +368,5 @@ function setOffensiveAndDefensiveTeams() {
             defensiveTeam = players.blue
             return
         }
-    }
-}
-
-function bounceObjectIfOut(object) {
-    if (object.xPos <= 0 || object.xPos >= screenWidth) {
-        object.xPosChangePerFrame = -object.xPosChangePerFrame * DECELERATION
-    } else if (object.yPos <= 0 || object.yPos >= screenHeight) {
-        object.yPosChangePerFrame = -object.yPosChangePerFrame * DECELERATION
     }
 }
