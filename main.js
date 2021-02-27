@@ -343,8 +343,8 @@ function movePlayers() {
             player.yPos += player.yPosChangePerFrame
             bounceObjectIfOut(player)
         }
-        playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * FAST_SPEED
-        playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * FAST_SPEED
+        playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * SLOW_SPEED
+        playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * SLOW_SPEED
         playerClosestToBall.player.xPos += playerClosestToBall.player.xPosChangePerFrame
         playerClosestToBall.player.yPos += playerClosestToBall.player.yPosChangePerFrame
     }
