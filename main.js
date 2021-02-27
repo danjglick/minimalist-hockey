@@ -281,20 +281,15 @@ function getBestDefensiveSpots() {
 function setBallPath() {
     let forwardKickTarget = getForwardKickTarget()
     let backwardKickTarget = getBackwardKickTarget()
-    let isSetToDribbleForward = ballPossessor.yPosChangePerFrame > 0
     if (forwardKickTarget) {
         setObjectTowardsSpotAtSpeed(ball, forwardKickTarget, FAST_SPEED)
         isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
-    } else if (isSetToDribbleForward) {
-        // do nothing because ballPossessor is already set to dribble to bestSpot
     } else if (backwardKickTarget) {
         setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
         ballPossessor = {}
         hasBeenIntercepted = false
-    } else {
-        // do nothing because ballPossessor is already set to dribble to bestSpot
     }
 }
 
