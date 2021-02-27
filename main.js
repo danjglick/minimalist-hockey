@@ -305,7 +305,7 @@ function _getKickTargetByDirection(direction) {
         let redPlayer = players.red[i]
         let isInRightDirection = (direction === "forward" && redPlayer.yPos > ballPossessor.yPos) || (direction === "backward" && redPlayer.yPos < ballPossessor.yPos)
         let isClosestToGoal = (kickTarget && kickTarget.yPos ? redPlayer.yPos > kickTarget.yPos : true)
-        if (isInRightDirection && isObjectDistanceFromObjects(redPlayer, FARNESS_THRESHOLD, players.blue) && isPathClear(ballPossessor, redPlayer) && isClosestToGoal) {
+        if (isInRightDirection && isPathClear(ballPossessor, redPlayer) && isClosestToGoal) {
             kickTarget = redPlayer
         }
     }
