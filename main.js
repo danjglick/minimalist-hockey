@@ -1,11 +1,12 @@
 // red-team offense
-// tackles, stop player if intercepted
+// tackles
 // goalies
-// tap in open space to move player
-// dead bounce bug, off by one border bug
+// move player towards tap
 // count goals
-// menu
-// difficulty bar
+// hot streak
+// difficulty slider
+// border bugs
+// menu and scoreboard
 // polish
 // release
 
@@ -178,9 +179,9 @@ function gameLoop() {
     drawBall()
     drawPlayers()
     if (!isPaused) {
-        frameCount += 1
+        frameCount++
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
-        // if (offensiveTeam == players.red) setBallPath() //probably will require refactoring setBallTowardsTouch2() to take arg instead of relying on touch2
+        if (offensiveTeam === players.red) setBallPath()
         movePlayers()
         moveBall()
         // handle goals
@@ -276,13 +277,33 @@ function getBestDefensiveSpots() {
     return bestDefensiveSpots
 }
 
-// function setBallPath() {
-//      if (open pass ahead) pass
-//      else if (open space ahead) dribble
-//      else if (open goal ahead) shoot
-//      else if (open pass behind) pass
-//      else dribble
-// }
+function setBallPath() {
+    let forwardKickTarget = getForwardKickTarget()
+    let backwardKickTarget = getBackwardKickTarget()
+    let wouldDribbleForward = ballPossessor.yPosChangePerFrame > 0
+    if (forwardKickTarget) {
+        setObjectTowardsSpotAtSpeed(ball, forwardKickTarget, FAST_SPEED)
+    } else if (wouldDribbleForward) {
+        // do nothing because ballPossessor is already set to dribble to bestSpot
+    } else if (backwardKickTarget) {
+        setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
+    } else {
+        // do nothing because ballPossessor is already set to dribble to bestSpot
+    }
+}
+
+function getForwardKickTarget() {
+    getKickTargetByDirection("forward")
+}
+
+function getBackwardKickTarget() {
+    getKickTargetByDirection("backward")
+}
+
+function getKickTargetByDirection(direction) {
+    // if kickTarget isFarFromPlayers, isInLineOfSight, isClosestKickTargetToGoal: return kicktarget
+    // else: return null
+}
 
 function movePlayers() {
     let teams = [players.blue, players.red]
@@ -322,6 +343,19 @@ function bounceObjectIfOut(object) {
         object.xPosChangePerFrame = -object.xPosChangePerFrame * DECELERATION
     } else if (object.yPos <= 0 || object.yPos >= screenHeight) {
         object.yPosChangePerFrame = -object.yPosChangePerFrame * DECELERATION
+    }
+}
+
+// unused WIP
+function switchPossessionIfTackled(player) {
+    for (let i = 0; i < players.blue.concat(players.red).length; i++) {
+        let interceptingPlayer = players.blue.concat(players.red)[i]
+        let isHorizontallyAlignedWithPlayer = (player.xPos > interceptingPlayer.xPos - PLAYER_RADIUS) && (player.xPos < interceptingPlayer.xPos + PLAYER_RADIUS)
+        let isVerticallyAlignedWithPlayer = (player.yPos > interceptingPlayer.yPos - PLAYER_RADIUS) && (player.yPos < interceptingPlayer.yPos + PLAYER_RADIUS)
+        if (player !== interceptingPlayer && isHorizontallyAlignedWithPlayer && isVerticallyAlignedWithPlayer) {
+            ballPossessor = interceptingPlayer
+            setOffensiveAndDefensiveTeams()
+        }
     }
 }
 
