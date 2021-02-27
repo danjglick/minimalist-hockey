@@ -6,6 +6,7 @@
 // hot streak
 // difficulty slider
 // border bugs
+// stagger and randomize order of bestSpot assignments
 // menu and scoreboard
 // polish
 // release
@@ -280,29 +281,45 @@ function getBestDefensiveSpots() {
 function setBallPath() {
     let forwardKickTarget = getForwardKickTarget()
     let backwardKickTarget = getBackwardKickTarget()
-    let wouldDribbleForward = ballPossessor.yPosChangePerFrame > 0
+    let isSetToDribbleForward = ballPossessor.yPosChangePerFrame > 0
     if (forwardKickTarget) {
         setObjectTowardsSpotAtSpeed(ball, forwardKickTarget, FAST_SPEED)
-    } else if (wouldDribbleForward) {
+        isSendingBall = true
+        ballPossessor = {}
+        hasBeenIntercepted = false
+    } else if (isSetToDribbleForward) {
         // do nothing because ballPossessor is already set to dribble to bestSpot
     } else if (backwardKickTarget) {
         setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
+        ballPossessor = {}
+        hasBeenIntercepted = false
     } else {
         // do nothing because ballPossessor is already set to dribble to bestSpot
     }
 }
 
 function getForwardKickTarget() {
-    getKickTargetByDirection("forward")
+    return _getKickTargetByDirection("forward")
 }
-
 function getBackwardKickTarget() {
-    getKickTargetByDirection("backward")
+    return _getKickTargetByDirection("backward")
+}
+function _getKickTargetByDirection(direction) {
+    let kickTarget = null
+    for (let i = 0; i < players.red.length; i++) {
+        let redPlayer = players.red[i]
+        let isInRightDirection = (direction === "forward" && redPlayer.yPos > ballPossessor.yPos) || (direction === "backward" && redPlayer.yPos < ballPossessor.yPos)
+        let isClosestToGoal = (kickTarget && kickTarget.yPos ? redPlayer.yPos > kickTarget.yPos : true)
+        if (isInRightDirection && isObjectDistanceFromObjects(redPlayer, FARNESS_THRESHOLD, players.blue) && isPathClear(ballPossessor, redPlayer) && isClosestToGoal) {
+            kickTarget = redPlayer
+        }
+    }
+    return kickTarget
 }
 
-function getKickTargetByDirection(direction) {
-    // if kickTarget isFarFromPlayers, isInLineOfSight, isClosestKickTargetToGoal: return kicktarget
-    // else: return null
+// write this
+function isPathClear(startPoint, endPoint) {
+    return true
 }
 
 function movePlayers() {
