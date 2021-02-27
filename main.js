@@ -127,6 +127,22 @@ function initializeGame() {
     gameLoop()
 }
 
+function gameLoop() {
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    drawGoals()
+    drawBall()
+    drawPlayers()
+    if (!isPaused) {
+        frameCount++
+        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
+        if (offensiveTeam === players.red) setBallPath()
+        movePlayers()
+        moveBall()
+        // handle goals
+    }
+    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
+}
+
 function handleTouchstart(event) {
     touch1.xPos = event.touches[0].clientX
     touch1.yPos = event.touches[0].clientY
@@ -172,22 +188,6 @@ function handleTouchmove(event) {
 function setObjectTowardsSpotAtSpeed(object, spot, speed) {
     object.xPosChangePerFrame = (spot.xPos - object.xPos) * speed
     object.yPosChangePerFrame = (spot.yPos - object.yPos) * speed
-}
-
-function gameLoop() {
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    drawGoals()
-    drawBall()
-    drawPlayers()
-    if (!isPaused) {
-        frameCount++
-        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
-        if (offensiveTeam === players.red) setBallPath()
-        movePlayers()
-        moveBall()
-        // handle goals
-    }
-    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
 function drawGoals() {
@@ -278,6 +278,7 @@ function getBestDefensiveSpots() {
     return bestDefensiveSpots
 }
 
+// this logic is not quite right and is kinda spaghetti but I can't seem to refactor it right - if we're ranking passes by yPos, why distinguish between forward and backward passes at all?
 function setBallPath() {
     let forwardKickTarget = getForwardKickTarget()
     let backwardKickTarget = getBackwardKickTarget()
@@ -288,6 +289,7 @@ function setBallPath() {
         hasBeenIntercepted = false
     } else if (backwardKickTarget) {
         setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
+        isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
     }
@@ -296,10 +298,12 @@ function setBallPath() {
 function getForwardKickTarget() {
     return _getKickTargetByDirection("forward")
 }
+
 function getBackwardKickTarget() {
     return _getKickTargetByDirection("backward")
 }
-function _getKickTargetByDirection(direction) {
+
+function _getKickTargetByDirection(direction) { // include shots on goal!
     let kickTarget = null
     for (let i = 0; i < players.red.length; i++) {
         let redPlayer = players.red[i]
@@ -312,7 +316,7 @@ function _getKickTargetByDirection(direction) {
     return kickTarget
 }
 
-// write this
+// write this!
 function isPathClear(startPoint, endPoint) {
     return true
 }
@@ -358,7 +362,7 @@ function bounceObjectIfOut(object) {
     }
 }
 
-// unused WIP
+// WIP unused
 function switchPossessionIfTackled(player) {
     for (let i = 0; i < players.blue.concat(players.red).length; i++) {
         let interceptingPlayer = players.blue.concat(players.red)[i]
