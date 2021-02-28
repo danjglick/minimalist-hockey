@@ -308,7 +308,7 @@ function getForwardKickTarget() {
 function getBackwardKickTarget() {
     return _getKickTargetByDirection("backward")
 }
-// TODO: include shots on goal!
+// TODO: include shots on goal
 function _getKickTargetByDirection(direction) { // include shots on goal!
     let kickTarget = null
     for (let i = 0; i < players.red.length; i++) {
@@ -322,12 +322,12 @@ function _getKickTargetByDirection(direction) { // include shots on goal!
     return kickTarget
 }
 
-// TODO: write this!
+// TODO: write this
 function isPathClear(startPoint, endPoint) {
     return true
 }
 
-// TODO: clean
+// TODO: clean up
 function movePlayers() {
     let teams = [players.blue, players.red]
     for (let i = 0; i < teams.length; i++) {
