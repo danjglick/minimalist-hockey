@@ -1,15 +1,17 @@
-// red-team offense
-// tackles
-// goalies
-// move player towards tap
-// count goals
-// hot streak
-// difficulty slider
-// border bugs
-// stagger and randomize order of bestSpot assignments
-// menu and scoreboard
-// polish
-// release
+/* TODO:
+red-team offense
+tackles
+goalies
+move player towards tap
+count goals
+hot streak
+difficulty slider
+border bugs
+stagger and randomize order of bestSpot assignments
+menu and scoreboard
+polish
+release
+*/
 
 const MILLISECONDS_PER_FRAME = 16
 const PLAYER_RADIUS = 25
@@ -127,22 +129,6 @@ function initializeGame() {
     gameLoop()
 }
 
-function gameLoop() {
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    drawGoals()
-    drawBall()
-    drawPlayers()
-    if (!isPaused) {
-        frameCount++
-        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
-        if (offensiveTeam === players.red) setBallPath()
-        movePlayers()
-        moveBall()
-        // handle goals
-    }
-    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
-}
-
 function handleTouchstart(event) {
     touch1.xPos = event.touches[0].clientX
     touch1.yPos = event.touches[0].clientY
@@ -190,6 +176,22 @@ function setObjectTowardsSpotAtSpeed(object, spot, speed) {
     object.yPosChangePerFrame = (spot.yPos - object.yPos) * speed
 }
 
+function gameLoop() {
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    drawGoals()
+    drawBall()
+    drawPlayers()
+    if (!isPaused) {
+        frameCount++
+        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
+        if (offensiveTeam === players.red) setBallPath()
+        movePlayers()
+        moveBall()
+        // handle goals
+    }
+    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
+}
+
 function drawGoals() {
     context.beginPath()
     context.rect(goals.red.xPos, goals.red.yPos, screenWidth / 2, screenHeight / 100)
@@ -228,7 +230,7 @@ function drawPlayers() {
 function setPlayerPaths() {
     let bestOffensiveSpots = getBestOffensiveSpots()
     for (let i = 0; i < bestOffensiveSpots.length; i++) {
-        if (offensiveTeam[i] !== sentPlayer) setObjectTowardsSpotAtSpeed(offensiveTeam[i], bestOffensiveSpots[i], SLOW_SPEED)
+        setObjectTowardsSpotAtSpeed(offensiveTeam[i], bestOffensiveSpots[i], SLOW_SPEED)
     }
     let bestDefensiveSpots = getBestDefensiveSpots()
     for (let i = 0; i < bestDefensiveSpots.length; i++) {
@@ -244,7 +246,7 @@ function getBestOffensiveSpots() {
                 xPos: xPos,
                 yPos: yPos,
             }
-            let distanceFromGoal = (offensiveTeam === players.blue ? yPos : -yPos)
+            let distanceFromGoal = (offensiveTeam === players.blue ? yPos : canvas.height - yPos)
             if (isObjectDistanceFromObjects(spot, FARNESS_THRESHOLD, players.blue.concat(players.red).concat(bestOffensiveSpots))) {
                 for (let i = 0; i < players.blue.length - 1; i++) {
                     if (!bestOffensiveSpots[i] || distanceFromGoal < bestOffensiveSpots[i].yPos) {
@@ -255,6 +257,8 @@ function getBestOffensiveSpots() {
             }
         }
     }
+    // TODO: I think there's a bug here - why red team so often at 2?
+    console.log(bestOffensiveSpots.length)
     return bestOffensiveSpots
 }
 
@@ -278,49 +282,52 @@ function getBestDefensiveSpots() {
     return bestDefensiveSpots
 }
 
-// this logic is not quite right and is kinda spaghetti but I can't seem to refactor it right - if we're ranking passes by yPos, why distinguish between forward and backward passes at all?
 function setBallPath() {
     let forwardKickTarget = getForwardKickTarget()
     let backwardKickTarget = getBackwardKickTarget()
+    let isSetToDribbleForward = ballPossessor.yPosChangePerFrame > 0
     if (forwardKickTarget) {
         setObjectTowardsSpotAtSpeed(ball, forwardKickTarget, FAST_SPEED)
         isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
+    } else if (isSetToDribbleForward) {//do nothing because ballPossessor is already set to dribble forward toward a bestOffensiveSpot
     } else if (backwardKickTarget) {
+        // TODO: duplicate code
         setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
         isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
+    } else {//do nothing because ballPossessor is already set to dribble backward toward a bestOffensiveSpot
     }
 }
 
 function getForwardKickTarget() {
     return _getKickTargetByDirection("forward")
 }
-
 function getBackwardKickTarget() {
     return _getKickTargetByDirection("backward")
 }
-
+// TODO: include shots on goal!
 function _getKickTargetByDirection(direction) { // include shots on goal!
     let kickTarget = null
     for (let i = 0; i < players.red.length; i++) {
         let redPlayer = players.red[i]
         let isInRightDirection = (direction === "forward" && redPlayer.yPos > ballPossessor.yPos) || (direction === "backward" && redPlayer.yPos < ballPossessor.yPos)
-        let isClosestToGoal = (kickTarget && kickTarget.yPos ? redPlayer.yPos > kickTarget.yPos : true)
-        if (isInRightDirection && isPathClear(ballPossessor, redPlayer) && isClosestToGoal) {
+        // TODO: rank targets then one-by-one see if path is clear ie should kick
+        if (isInRightDirection && isPathClear(ballPossessor, redPlayer)) {
             kickTarget = redPlayer
         }
     }
     return kickTarget
 }
 
-// write this!
+// TODO: write this!
 function isPathClear(startPoint, endPoint) {
     return true
 }
 
+// TODO: clean
 function movePlayers() {
     let teams = [players.blue, players.red]
     for (let i = 0; i < teams.length; i++) {
@@ -362,7 +369,7 @@ function bounceObjectIfOut(object) {
     }
 }
 
-// WIP unused
+// TODO: WIP unused
 function switchPossessionIfTackled(player) {
     for (let i = 0; i < players.blue.concat(players.red).length; i++) {
         let interceptingPlayer = players.blue.concat(players.red)[i]
