@@ -1,5 +1,4 @@
 /* TODO:
-border bug
 tackles
 goalies
 move player towards tap
@@ -19,7 +18,7 @@ const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_SPEED = 0.005
 const FAST_SPEED = 0.05
-const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
+const FARNESS_THRESHOLD = PLAYER_RADIUS * 4
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
 
 let canvas;
