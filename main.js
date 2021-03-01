@@ -235,6 +235,8 @@ function setPlayerPaths() {
     for (let i = 0; i < bestDefensiveSpots.length; i++) {
         setObjectTowardsSpotAtSpeed(defensiveTeam[i], bestDefensiveSpots[i], SLOW_SPEED)
     }
+    setObjectTowardsSpotAtSpeed(players.blue[players.blue.length - 1], {xPos: SCREEN_WIDTH / 2, yPos: SCREEN_HEIGHT - PIXEL_SHIM}, SLOW_SPEED)
+    setObjectTowardsSpotAtSpeed(players.red[players.red.length - 1], {xPos: SCREEN_WIDTH / 2, yPos: PIXEL_SHIM}, SLOW_SPEED)
 }
 
 // TODO: there's probably a cheaper way to write this
