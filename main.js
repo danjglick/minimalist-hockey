@@ -247,11 +247,11 @@ function drawPlayers() {
 function setPlayerPaths() {
     let bestOffensiveSpots = getBestOffensiveSpots()
     for (let i = 0; i < bestOffensiveSpots.length; i++) {
-        setObjectTowardsSpotAtSpeed(offensiveTeam[i], bestOffensiveSpots[i], SLOW_SPEED)
+        if (offensiveTeam[i] !== sentPlayer) setObjectTowardsSpotAtSpeed(offensiveTeam[i], bestOffensiveSpots[i], SLOW_SPEED)
     }
     let bestDefensiveSpots = getBestDefensiveSpots()
     for (let i = 0; i < bestDefensiveSpots.length; i++) {
-        setObjectTowardsSpotAtSpeed(defensiveTeam[i], bestDefensiveSpots[i], SLOW_SPEED)
+        if (defensiveTeam[i] !== sentPlayer) setObjectTowardsSpotAtSpeed(defensiveTeam[i], bestDefensiveSpots[i], SLOW_SPEED)
     }
     setObjectTowardsSpotAtSpeed(players.blue[players.blue.length - 1], {xPos: SCREEN_WIDTH / 2, yPos: SCREEN_HEIGHT - PIXEL_SHIM}, SLOW_SPEED)
     setObjectTowardsSpotAtSpeed(players.red[players.red.length - 1], {xPos: SCREEN_WIDTH / 2, yPos: PIXEL_SHIM}, SLOW_SPEED)
