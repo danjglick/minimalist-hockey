@@ -304,7 +304,7 @@ function setBallPath() {
 
 function getForwardKickTarget() {
     let shotTarget = {
-        xPos: [screenWidth / 2 + PLAYER_RADIUS * 3, screenWidth / 2 - PLAYER_RADIUS * 3][Math.floor(Math.random() * 2)],
+        xPos: [screenWidth / 2 + GOAL_WIDTH / 2, screenWidth / 2 - GOAL_WIDTH / 2][Math.floor(Math.random() * 2)],
         yPos: screenHeight
     }
     if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > screenHeight / 2) {
