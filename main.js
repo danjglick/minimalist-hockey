@@ -1,6 +1,6 @@
 /* TODO:
-tackles
 goalies
+tackles
 move player towards tap
 handleGoals
 hot streak
@@ -383,8 +383,11 @@ function movePlayers() {
             player.yPos += player.yPosChangePerFrame
             bounceObjectIfOut(player)
         }
-        playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * SLOW_SPEED
-        playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * SLOW_SPEED
+        let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && screenHeight - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
+        let isRedGoalieMakingSave = playerClosestToBall.player === players.red[players.red.length - 1] && playerClosestToBall.player.yPos < FARNESS_THRESHOLD
+        let speed = (isBlueGoalieMakingSave || isRedGoalieMakingSave) ? FAST_SPEED * 2 : SLOW_SPEED
+        playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * speed
+        playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * speed
         playerClosestToBall.player.xPos += playerClosestToBall.player.xPosChangePerFrame
         playerClosestToBall.player.yPos += playerClosestToBall.player.yPosChangePerFrame
     }
@@ -438,6 +441,8 @@ function stopBallIfIntercepted() {
             ball.xPosChangePerFrame = 0
             ball.yPosChangePerFrame = 0
             ballPossessor = player
+            ballPossessor.xPosChangePerFrame = 0
+            ballPossessor.yPosChangePerFrame = 0
             setPlayerPaths()
             setOffensiveAndDefensiveTeams()
         }
