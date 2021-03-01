@@ -14,6 +14,7 @@ release
 const MILLISECONDS_PER_FRAME = 16
 const PLAYER_RADIUS = 25
 const BALL_RADIUS = 12.5
+const GOAL_WIDTH = PLAYER_RADIUS * 6
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_SPEED = 0.005
@@ -89,11 +90,11 @@ let ball = {
 }
 let goals = {
     red: {
-        xPos: screenWidth * 0.25,
+        xPos: (screenWidth - (PLAYER_RADIUS * 6)) / 2,
         yPos: 0
     },
     blue: {
-        xPos: screenWidth * 0.25,
+        xPos: (screenWidth - (PLAYER_RADIUS * 6)) / 2,
         yPos: screenHeight - PIXEL_SHIM
     }
 }
@@ -191,11 +192,11 @@ function gameLoop() {
 
 function drawGoals() {
     context.beginPath()
-    context.rect(goals.red.xPos, goals.red.yPos, screenWidth / 2, screenHeight / 100)
+    context.rect(goals.red.xPos, goals.red.yPos, GOAL_WIDTH, screenHeight / 100)
     context.fillStyle = "white"
     context.fill()
     context.beginPath()
-    context.rect(goals.blue.xPos, goals.blue.yPos, screenWidth / 2, screenHeight / 100)
+    context.rect(goals.blue.xPos, goals.blue.yPos, GOAL_WIDTH, screenHeight / 100)
     context.fillStyle = "white"
     context.fill()
 }
@@ -303,7 +304,7 @@ function setBallPath() {
 
 function getForwardKickTarget() {
     let shotTarget = {
-        xPos: [screenWidth / 2 + FARNESS_THRESHOLD, screenWidth / 2 - FARNESS_THRESHOLD][Math.floor(Math.random() * 2)],
+        xPos: [screenWidth / 2 + PLAYER_RADIUS * 3, screenWidth / 2 - PLAYER_RADIUS * 3][Math.floor(Math.random() * 2)],
         yPos: screenHeight
     }
     if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > screenHeight / 2) {
@@ -311,9 +312,11 @@ function getForwardKickTarget() {
     }
     return _getKickTargetByDirection("forward")
 }
+
 function getBackwardKickTarget() {
     return _getKickTargetByDirection("backward")
 }
+
 // TODO: include shots on goal
 function _getKickTargetByDirection(direction) { // include shots on goal!
     let kickTarget = null
