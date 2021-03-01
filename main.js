@@ -3,7 +3,7 @@ red-team offense
 tackles
 goalies
 move player towards tap
-count goals
+handleGoals
 hot streak
 difficulty slider
 border bugs
@@ -238,6 +238,7 @@ function setPlayerPaths() {
     }
 }
 
+// TODO: there's probably a cheaper way to write this
 function getBestOffensiveSpots() {
     let bestOffensiveSpots = []
     for (let xPos = PIXEL_SHIM; xPos < screenWidth; xPos++) {
@@ -257,8 +258,7 @@ function getBestOffensiveSpots() {
             }
         }
     }
-    // TODO: I think there's a bug here - why red team so often at 2?
-    console.log(bestOffensiveSpots.length)
+    // TODO: I think there's a bug here - why red team so often have only 2 bestOffensiveSpots? And isn't really making runs for each other?
     return bestOffensiveSpots
 }
 
@@ -291,18 +291,32 @@ function setBallPath() {
         isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
-    } else if (isSetToDribbleForward) {//do nothing because ballPossessor is already set to dribble forward toward a bestOffensiveSpot
+    } else if (isSetToDribbleForward) {
+        //do nothing because ballPossessor is already set to dribble forward toward a bestOffensiveSpot
     } else if (backwardKickTarget) {
         // TODO: duplicate code
         setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
         isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
-    } else {//do nothing because ballPossessor is already set to dribble backward toward a bestOffensiveSpot
+    } else {
+        //do nothing because ballPossessor is already set to dribble backward toward a bestOffensiveSpot
     }
 }
 
 function getForwardKickTarget() {
+    let goalSpot = {
+        xPos: canvas.width / 2,
+        yPos: canvas.height
+    }
+    if (isPathClear(ballPossessor, goalSpot) && ballPossessor.yPos > canvas.height / 2) {
+        let xPosShotTarget = [canvas.width / 2 + FARNESS_THRESHOLD, canvas.width / 2 - FARNESS_THRESHOLD][Math.floor(Math.random() * 2)]
+        let yPosShotTarget = canvas.height
+        return {
+            xPos: xPosShotTarget,
+            yPos: canvas.height
+        }
+    }
     return _getKickTargetByDirection("forward")
 }
 function getBackwardKickTarget() {
@@ -322,12 +336,32 @@ function _getKickTargetByDirection(direction) { // include shots on goal!
     return kickTarget
 }
 
-// TODO: write this
 function isPathClear(startPoint, endPoint) {
+    let pathPoint = {
+        xPos: startPoint.xPos,
+        yPos: startPoint.yPos,
+        xPosChangePerFrame: (endPoint.xPos - startPoint.xPos) * SLOW_SPEED,
+        yPosChangePerFrame: (endPoint.yPos - startPoint.yPos) * SLOW_SPEED
+    }
+    let tries = 0
+    while (tries < 100) {
+        tries++
+        pathPoint.xPos += pathPoint.xPosChangePerFrame
+        pathPoint.yPos += pathPoint.yPosChangePerFrame
+        if (Math.abs(pathPoint.xPos - endPoint.xPos) < PIXEL_SHIM && Math.abs(pathPoint.yPos - endPoint.yPos) < PIXEL_SHIM) {
+            return true
+        }
+        for (let i = 0; i < players.blue.length; i++) {
+            let bluePlayer = players.blue[i]
+            if (Math.abs(pathPoint.xPos - bluePlayer.xPos) < PIXEL_SHIM && Math.abs(pathPoint.yPos - bluePlayer.yPos) < PIXEL_SHIM) {
+                return false
+            }
+        }
+    }
     return true
 }
 
-// TODO: clean up
+// TODO: break up
 function movePlayers() {
     let teams = [players.blue, players.red]
     for (let i = 0; i < teams.length; i++) {
