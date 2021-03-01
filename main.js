@@ -1,7 +1,6 @@
 /* TODO:
-tackles
+movePlayerTowardTap
 clean
-move player towards tap
 handleGoals
 hot streak
 difficulty slider
@@ -185,8 +184,8 @@ function gameLoop() {
         frameCount++
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
         if (offensiveTeam === players.red) setBallPath()
-        handlePlayerCollision()
         movePlayers()
+        handlePlayerCollision()
         moveBall()
         // handle goals
     }
@@ -197,12 +196,14 @@ function handlePlayerCollision() {
     for (let i = 0; i < players.blue.length; i++) {
         let bluePlayer = players.blue[i]
         for (let ii = 0; ii < players.red.length; ii++) {
-            let redPlayer = players.red[ii]
-            if (bluePlayer.xPos === redPlayer.xPos && bluePlayer.yPos === redPlayer.yPos) {
-                bluePlayer.xPosChangePerFrame = -bluePlayer.xPosChangePerFrame
-                bluePlayer.yPosChangePerFrame = -bluePlayer.yPosChangePerFrame
-                redPlayer.xPosChangePerFrame = -redPlayer.xPosChangePerFrame
-                redPlayer.yPosChangePerFrame = -redPlayer.yPosChangePerFrame
+            let redPlayer = players.red[i]
+            if ((bluePlayer === ballPossessor || redPlayer === ballPossessor) && bluePlayer.xPos - redPlayer.xPos < PLAYER_RADIUS && bluePlayer.yPos - redPlayer.yPos < PLAYER_RADIUS) {
+                if ((Math.abs(bluePlayer.xPos - ball.xPos) + Math.abs(bluePlayer.yPos - ball.yPos)) < (Math.abs(redPlayer.xPos - ball.xPos) + Math.abs(redPlayer.yPos - ball.yPos))) {
+                    ballPossessor = bluePlayer
+                } else {
+                    ballPossessor = redPlayer
+                }
+                setOffensiveAndDefensiveTeams()
             }
         }
     }
@@ -267,7 +268,7 @@ function getBestOffensiveSpots() {
             }
             let distanceFromGoal = (offensiveTeam === players.blue ? yPos : canvas.height - yPos)
             if (isObjectDistanceFromObjects(spot, FARNESS_THRESHOLD, players.blue.concat(players.red).concat(bestOffensiveSpots))) {
-                for (let i = 0; i < players.blue.length - 1; i++) {
+                for (let i = 0; i < offensiveTeam.length - 1; i++) {
                     if (!bestOffensiveSpots[i] || distanceFromGoal < bestOffensiveSpots[i].yPos) {
                         bestOffensiveSpots[i] = spot
                         break
