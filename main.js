@@ -1,12 +1,11 @@
 /* TODO:
-red-team offense
+border bug
 tackles
 goalies
 move player towards tap
 handleGoals
 hot streak
 difficulty slider
-border bugs
 stagger and randomize order of bestSpot assignments
 menu and scoreboard
 polish
@@ -20,7 +19,6 @@ const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_SPEED = 0.005
 const FAST_SPEED = 0.05
-const DECELERATION = 0.75
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
 
@@ -305,17 +303,12 @@ function setBallPath() {
 }
 
 function getForwardKickTarget() {
-    let goalSpot = {
-        xPos: canvas.width / 2,
-        yPos: canvas.height
+    let shotTarget = {
+        xPos: [screenWidth / 2 + FARNESS_THRESHOLD, screenWidth / 2 - FARNESS_THRESHOLD][Math.floor(Math.random() * 2)],
+        yPos: screenHeight
     }
-    if (isPathClear(ballPossessor, goalSpot) && ballPossessor.yPos > canvas.height / 2) {
-        let xPosShotTarget = [canvas.width / 2 + FARNESS_THRESHOLD, canvas.width / 2 - FARNESS_THRESHOLD][Math.floor(Math.random() * 2)]
-        let yPosShotTarget = canvas.height
-        return {
-            xPos: xPosShotTarget,
-            yPos: canvas.height
-        }
+    if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > screenHeight / 2) {
+        return shotTarget
     }
     return _getKickTargetByDirection("forward")
 }
@@ -396,10 +389,14 @@ function movePlayers() {
 }
 
 function bounceObjectIfOut(object) {
-    if (object.xPos <= 0 || object.xPos >= screenWidth) {
-        object.xPosChangePerFrame = -object.xPosChangePerFrame * DECELERATION
-    } else if (object.yPos <= 0 || object.yPos >= screenHeight) {
-        object.yPosChangePerFrame = -object.yPosChangePerFrame * DECELERATION
+    if (object.xPos < PIXEL_SHIM) {
+        object.xPosChangePerFrame = Math.abs(object.xPosChangePerFrame)
+    } else if (object.xPos > screenWidth - PIXEL_SHIM) {
+        object.xPosChangePerFrame = -Math.abs(object.xPosChangePerFrame)
+    } else if (object.yPos < PIXEL_SHIM) {
+        object.yPosChangePerFrame = Math.abs(object.yPosChangePerFrame)
+    } else if (object.yPos > screenHeight - PIXEL_SHIM) {
+        object.yPosChangePerFrame = -Math.abs(object.yPosChangePerFrame)
     }
 }
 
