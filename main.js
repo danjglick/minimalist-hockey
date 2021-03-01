@@ -18,7 +18,7 @@ const GOAL_WIDTH = PLAYER_RADIUS * 6
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_SPEED = 0.005
-const FAST_SPEED = 0.05
+const FAST_SPEED = 0.025
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 4
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
 
@@ -304,7 +304,7 @@ function setBallPath() {
 
 function getForwardKickTarget() {
     let shotTarget = {
-        xPos: [screenWidth / 2 + GOAL_WIDTH / 2, screenWidth / 2 - GOAL_WIDTH / 2][Math.floor(Math.random() * 2)],
+        xPos: [screenWidth / 2 + GOAL_WIDTH / 3, screenWidth / 2 - GOAL_WIDTH / 3][Math.floor(Math.random() * 2)],
         yPos: screenHeight
     }
     if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > screenHeight / 2) {
@@ -385,7 +385,7 @@ function movePlayers() {
         }
         let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && screenHeight - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
         let isRedGoalieMakingSave = playerClosestToBall.player === players.red[players.red.length - 1] && playerClosestToBall.player.yPos < FARNESS_THRESHOLD
-        let speed = (isBlueGoalieMakingSave || isRedGoalieMakingSave) ? FAST_SPEED * 2 : SLOW_SPEED
+        let speed = (isBlueGoalieMakingSave || isRedGoalieMakingSave) ? FAST_SPEED : SLOW_SPEED
         playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * speed
         playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * speed
         playerClosestToBall.player.xPos += playerClosestToBall.player.xPosChangePerFrame
