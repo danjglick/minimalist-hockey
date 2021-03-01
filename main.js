@@ -1,6 +1,6 @@
 /* TODO:
-goalies
 tackles
+clean
 move player towards tap
 handleGoals
 hot streak
@@ -131,6 +131,7 @@ function initializeGame() {
 function handleTouchstart(event) {
     touch1.xPos = event.touches[0].clientX
     touch1.yPos = event.touches[0].clientY
+
     determineIfSendingPlayerOrBall()
 }
 
@@ -184,11 +185,27 @@ function gameLoop() {
         frameCount++
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
         if (offensiveTeam === players.red) setBallPath()
+        handlePlayerCollision()
         movePlayers()
         moveBall()
         // handle goals
     }
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
+}
+
+function handlePlayerCollision() {
+    for (let i = 0; i < players.blue.length; i++) {
+        let bluePlayer = players.blue[i]
+        for (let ii = 0; ii < players.red.length; ii++) {
+            let redPlayer = players.red[ii]
+            if (bluePlayer.xPos === redPlayer.xPos && bluePlayer.yPos === redPlayer.yPos) {
+                bluePlayer.xPosChangePerFrame = -bluePlayer.xPosChangePerFrame
+                bluePlayer.yPosChangePerFrame = -bluePlayer.yPosChangePerFrame
+                redPlayer.xPosChangePerFrame = -redPlayer.xPosChangePerFrame
+                redPlayer.yPosChangePerFrame = -redPlayer.yPosChangePerFrame
+            }
+        }
+    }
 }
 
 function drawGoals() {
