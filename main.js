@@ -18,37 +18,38 @@ const GOAL_WIDTH = PLAYER_RADIUS * 6
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_SPEED = 0.005
-const FAST_SPEED = 0.025
+const FAST_SPEED = 0.05
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 4
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
+const SCREEN_WIDTH = visualViewport.width
+const SCREEN_HEIGHT = visualViewport.height
+const RED_TEAM_SHOT_TARGETS = [SCREEN_WIDTH / 2 + GOAL_WIDTH / 3, SCREEN_WIDTH / 3 - GOAL_WIDTH / 2]
 
 let canvas;
 let context;
-let screenWidth = visualViewport.width
-let screenHeight = visualViewport.height
 let players = {
     blue: [
         {
-            xPos: screenWidth * 0.5,
-            yPos: screenHeight * 0.5 + PIXEL_SHIM,
+            xPos: SCREEN_WIDTH * 0.5,
+            yPos: SCREEN_HEIGHT * 0.5 + PIXEL_SHIM,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: screenWidth * 0.2,
-            yPos: screenHeight * 0.75,
+            xPos: SCREEN_WIDTH * 0.2,
+            yPos: SCREEN_HEIGHT * 0.75,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: screenWidth * 0.8,
-            yPos: screenHeight * 0.75,
+            xPos: SCREEN_WIDTH * 0.8,
+            yPos: SCREEN_HEIGHT * 0.75,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: screenWidth * 0.5,
-            yPos: screenHeight - PIXEL_SHIM,
+            xPos: SCREEN_WIDTH * 0.5,
+            yPos: SCREEN_HEIGHT - PIXEL_SHIM,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         }
@@ -56,25 +57,25 @@ let players = {
     ],
     red: [
         {
-            xPos: screenWidth * 0.5,
-            yPos: (screenHeight * 0.5) - (PIXEL_SHIM * 3),
+            xPos: SCREEN_WIDTH * 0.5,
+            yPos: (SCREEN_HEIGHT * 0.5) - (PIXEL_SHIM * 3),
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: screenWidth * 0.2,
-            yPos: screenHeight * 0.25,
+            xPos: SCREEN_WIDTH * 0.2,
+            yPos: SCREEN_HEIGHT * 0.25,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: screenWidth * 0.8,
-            yPos: screenHeight * 0.25,
+            xPos: SCREEN_WIDTH * 0.8,
+            yPos: SCREEN_HEIGHT * 0.25,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: screenWidth * 0.5,
+            xPos: SCREEN_WIDTH * 0.5,
             yPos: PIXEL_SHIM,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
@@ -83,19 +84,19 @@ let players = {
 }
 let ball = {
     radius: BALL_RADIUS,
-    xPos: screenWidth * 0.5,
-    yPos: screenHeight * 0.5,
+    xPos: SCREEN_WIDTH * 0.5,
+    yPos: SCREEN_HEIGHT * 0.5,
     xPosChangePerFrame: 0,
     yPosChangePerFrame: 0
 }
 let goals = {
     red: {
-        xPos: (screenWidth - (PLAYER_RADIUS * 6)) / 2,
+        xPos: (SCREEN_WIDTH - (PLAYER_RADIUS * 6)) / 2,
         yPos: 0
     },
     blue: {
-        xPos: (screenWidth - (PLAYER_RADIUS * 6)) / 2,
-        yPos: screenHeight - PIXEL_SHIM
+        xPos: (SCREEN_WIDTH - (PLAYER_RADIUS * 6)) / 2,
+        yPos: SCREEN_HEIGHT - PIXEL_SHIM
     }
 }
 let touch1 = {
@@ -119,8 +120,8 @@ let hasBeenIntercepted = false
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
-    canvas.width = screenWidth
-    canvas.height = screenHeight
+    canvas.width = SCREEN_WIDTH
+    canvas.height = SCREEN_HEIGHT
     context = canvas.getContext('2d')
     document.addEventListener("touchstart", handleTouchstart)
     document.addEventListener("touchmove", handleTouchmove, {passive: false})
@@ -192,11 +193,11 @@ function gameLoop() {
 
 function drawGoals() {
     context.beginPath()
-    context.rect(goals.red.xPos, goals.red.yPos, GOAL_WIDTH, screenHeight / 100)
+    context.rect(goals.red.xPos, goals.red.yPos, GOAL_WIDTH, SCREEN_HEIGHT / 100)
     context.fillStyle = "white"
     context.fill()
     context.beginPath()
-    context.rect(goals.blue.xPos, goals.blue.yPos, GOAL_WIDTH, screenHeight / 100)
+    context.rect(goals.blue.xPos, goals.blue.yPos, GOAL_WIDTH, SCREEN_HEIGHT / 100)
     context.fillStyle = "white"
     context.fill()
 }
@@ -239,8 +240,8 @@ function setPlayerPaths() {
 // TODO: there's probably a cheaper way to write this
 function getBestOffensiveSpots() {
     let bestOffensiveSpots = []
-    for (let xPos = PIXEL_SHIM; xPos < screenWidth; xPos++) {
-        for (let yPos = PIXEL_SHIM; yPos < screenHeight; yPos++) {
+    for (let xPos = PIXEL_SHIM; xPos < SCREEN_WIDTH; xPos++) {
+        for (let yPos = PIXEL_SHIM; yPos < SCREEN_HEIGHT; yPos++) {
             let spot = {
                 xPos: xPos,
                 yPos: yPos,
@@ -304,10 +305,10 @@ function setBallPath() {
 
 function getForwardKickTarget() {
     let shotTarget = {
-        xPos: [screenWidth / 2 + GOAL_WIDTH / 3, screenWidth / 2 - GOAL_WIDTH / 3][Math.floor(Math.random() * 2)],
-        yPos: screenHeight
+        xPos: RED_TEAM_SHOT_TARGETS[Math.floor(Math.random() * 2)],
+        yPos: SCREEN_HEIGHT
     }
-    if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > screenHeight / 2) {
+    if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > SCREEN_HEIGHT / 2) {
         return shotTarget
     }
     return _getKickTargetByDirection("forward")
@@ -383,7 +384,7 @@ function movePlayers() {
             player.yPos += player.yPosChangePerFrame
             bounceObjectIfOut(player)
         }
-        let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && screenHeight - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
+        let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && SCREEN_HEIGHT - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
         let isRedGoalieMakingSave = playerClosestToBall.player === players.red[players.red.length - 1] && playerClosestToBall.player.yPos < FARNESS_THRESHOLD
         let speed = (isBlueGoalieMakingSave || isRedGoalieMakingSave) ? FAST_SPEED : SLOW_SPEED
         playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * speed
@@ -396,11 +397,11 @@ function movePlayers() {
 function bounceObjectIfOut(object) {
     if (object.xPos < PIXEL_SHIM) {
         object.xPosChangePerFrame = Math.abs(object.xPosChangePerFrame)
-    } else if (object.xPos > screenWidth - PIXEL_SHIM) {
+    } else if (object.xPos > SCREEN_WIDTH - PIXEL_SHIM) {
         object.xPosChangePerFrame = -Math.abs(object.xPosChangePerFrame)
     } else if (object.yPos < PIXEL_SHIM) {
         object.yPosChangePerFrame = Math.abs(object.yPosChangePerFrame)
-    } else if (object.yPos > screenHeight - PIXEL_SHIM) {
+    } else if (object.yPos > SCREEN_HEIGHT - PIXEL_SHIM) {
         object.yPosChangePerFrame = -Math.abs(object.yPosChangePerFrame)
     }
 }
