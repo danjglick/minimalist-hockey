@@ -147,7 +147,7 @@ function _gameLoop() {
     drawGoals()
     drawBall()
     drawPlayers()
-    setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
+    setTimeout(_gameLoop, MILLISECONDS_PER_FRAME)
 }
 
 
