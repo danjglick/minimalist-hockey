@@ -1,54 +1,56 @@
 /* TODO:
-movePlayerTowardTap
-clean
-handleGoals
-hot streak
-difficulty slider
-stagger and randomize order of bestSpot assignments
-menu and scoreboard
-polish
-release
+collisions (combine into one function, make so players can't intersect, handleGoals)
+better player-sends and player-dribbles (think: better destinations, longer, staggered-in-randomized order, deceleration, drag-to-dribble)
+change player skill levels via difficulty slider and via blue player emotions (cute leeetle emoticons in their big round faces)
+menu and scoreboard (if a team goal total % 3 == 0: ask user if want to restart or continue)
+polish and release
 */
 
 const MILLISECONDS_PER_FRAME = 16
-const PLAYER_RADIUS = 25
-const BALL_RADIUS = 12.5
+const PLAYER_RADIUS =  25
+const BALL_RADIUS = 10
 const GOAL_WIDTH = PLAYER_RADIUS * 6
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
 const SLOW_SPEED = 0.005
 const FAST_SPEED = 0.05
-const FARNESS_THRESHOLD = PLAYER_RADIUS * 4
+const FARNESS_THRESHOLD = PLAYER_RADIUS * 6
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
-const SCREEN_WIDTH = visualViewport.width
-const SCREEN_HEIGHT = visualViewport.height
-const RED_TEAM_SHOT_TARGETS = [SCREEN_WIDTH / 2 + GOAL_WIDTH / 3, SCREEN_WIDTH / 2 - GOAL_WIDTH / 3]
+const RED_TEAM_SHOT_TARGETS = [(visualViewport.width / 2) + (GOAL_WIDTH / 3), (visualViewport.width / 2) - (GOAL_WIDTH / 3)]
+const BLUE_GOALIE_SPOT = {
+    xPos: visualViewport.width / 2,
+    yPos: visualViewport.height - PIXEL_SHIM
+}
+const RED_GOALIE_SPOT = {
+    xPos: visualViewport.width / 2,
+    yPos: PIXEL_SHIM
+}
 
 let canvas;
 let context;
 let players = {
     blue: [
         {
-            xPos: SCREEN_WIDTH * 0.5,
-            yPos: SCREEN_HEIGHT * 0.5 + PIXEL_SHIM,
+            xPos: visualViewport.width / 2,
+            yPos: (visualViewport.height / 2) + PIXEL_SHIM,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: SCREEN_WIDTH * 0.2,
-            yPos: SCREEN_HEIGHT * 0.75,
+            xPos: visualViewport.width / 5,
+            yPos: visualViewport.height * 0.75,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: SCREEN_WIDTH * 0.8,
-            yPos: SCREEN_HEIGHT * 0.75,
+            xPos: visualViewport.width * 0.8,
+            yPos: visualViewport.height * 0.75,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: SCREEN_WIDTH * 0.5,
-            yPos: SCREEN_HEIGHT - PIXEL_SHIM,
+            xPos: BLUE_GOALIE_SPOT.xPos,
+            yPos: BLUE_GOALIE_SPOT.yPos,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         }
@@ -56,26 +58,26 @@ let players = {
     ],
     red: [
         {
-            xPos: SCREEN_WIDTH * 0.5,
-            yPos: (SCREEN_HEIGHT * 0.5) - (PIXEL_SHIM * 3),
+            xPos: visualViewport.width /2,
+            yPos: (visualViewport.height / 2) - (PIXEL_SHIM * 3),
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: SCREEN_WIDTH * 0.2,
-            yPos: SCREEN_HEIGHT * 0.25,
+            xPos: visualViewport.width / 5,
+            yPos: visualViewport.height / 4,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: SCREEN_WIDTH * 0.8,
-            yPos: SCREEN_HEIGHT * 0.25,
+            xPos: visualViewport.width * 0.8,
+            yPos: visualViewport.height / 4,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
         {
-            xPos: SCREEN_WIDTH * 0.5,
-            yPos: PIXEL_SHIM,
+            xPos: RED_GOALIE_SPOT.xPos,
+            yPos: RED_GOALIE_SPOT.yPos,
             xPosChangePerFrame: 0,
             yPosChangePerFrame: 0
         },
@@ -83,19 +85,19 @@ let players = {
 }
 let ball = {
     radius: BALL_RADIUS,
-    xPos: SCREEN_WIDTH * 0.5,
-    yPos: SCREEN_HEIGHT * 0.5,
+    xPos: visualViewport.width / 2,
+    yPos: visualViewport.height / 2,
     xPosChangePerFrame: 0,
     yPosChangePerFrame: 0
 }
 let goals = {
     red: {
-        xPos: (SCREEN_WIDTH - (PLAYER_RADIUS * 6)) / 2,
+        xPos: (visualViewport.width - (PLAYER_RADIUS * 6)) / 2,
         yPos: 0
     },
     blue: {
-        xPos: (SCREEN_WIDTH - (PLAYER_RADIUS * 6)) / 2,
-        yPos: SCREEN_HEIGHT - PIXEL_SHIM
+        xPos: (visualViewport.width - (PLAYER_RADIUS * 6)) / 2,
+        yPos: visualViewport.height - PIXEL_SHIM
     }
 }
 let touch1 = {
@@ -108,19 +110,19 @@ let touch2 = {
 }
 let offensiveTeam = players.blue
 let defensiveTeam = players.red
-let sentPlayer = {}
 let ballPossessor = {}
-let sentPlayerFramesLeft = 0
 let frameCount = 0
 let isPaused = true
-let isSendingBall = false
+let sentPlayer = {}
+let sentPlayerFramesLeft = 0
 let isSendingPlayer = false
+let isSendingBall = false
 let hasBeenIntercepted = false
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
-    canvas.width = SCREEN_WIDTH
-    canvas.height = SCREEN_HEIGHT
+    canvas.width = visualViewport.width
+    canvas.height = visualViewport.height
     context = canvas.getContext('2d')
     document.addEventListener("touchstart", handleTouchstart)
     document.addEventListener("touchmove", handleTouchmove, {passive: false})
@@ -130,7 +132,6 @@ function initializeGame() {
 function handleTouchstart(event) {
     touch1.xPos = event.touches[0].clientX
     touch1.yPos = event.touches[0].clientY
-
     determineIfSendingPlayerOrBall()
 }
 
@@ -160,13 +161,13 @@ function handleTouchmove(event) {
     touch2.xPos = event.touches[0].clientX
     touch2.yPos = event.touches[0].clientY
     if (isSendingBall) {
-        setObjectTowardsSpotAtSpeed(ball, touch2, FAST_SPEED)
         isPaused = false
         ballPossessor = {}
         hasBeenIntercepted = false
+        setObjectTowardsSpotAtSpeed(ball, touch2, FAST_SPEED)
     } else if (isSendingPlayer) {
-        setObjectTowardsSpotAtSpeed(sentPlayer, touch2, FAST_SPEED)
         sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
+        setObjectTowardsSpotAtSpeed(sentPlayer, touch2, FAST_SPEED)
     }
 }
 
@@ -181,41 +182,24 @@ function gameLoop() {
     drawBall()
     drawPlayers()
     if (!isPaused) {
-        frameCount++
-        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
+        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 0) setPlayerPaths()
         if (offensiveTeam === players.red) setBallPath()
-        movePlayers()
         handlePlayerCollision()
+        // if (ballGoalCollision in collisions) handleBallGoalCollision()
+        movePlayers()
         moveBall()
-        // handle goals
+        frameCount++
     }
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
 }
 
-function handlePlayerCollision() {
-    for (let i = 0; i < players.blue.length; i++) {
-        let bluePlayer = players.blue[i]
-        for (let ii = 0; ii < players.red.length; ii++) {
-            let redPlayer = players.red[i]
-            if ((bluePlayer === ballPossessor || redPlayer === ballPossessor) && bluePlayer.xPos - redPlayer.xPos < PLAYER_RADIUS && bluePlayer.yPos - redPlayer.yPos < PLAYER_RADIUS) {
-                if ((Math.abs(bluePlayer.xPos - ball.xPos) + Math.abs(bluePlayer.yPos - ball.yPos)) < (Math.abs(redPlayer.xPos - ball.xPos) + Math.abs(redPlayer.yPos - ball.yPos))) {
-                    ballPossessor = bluePlayer
-                } else {
-                    ballPossessor = redPlayer
-                }
-                setOffensiveAndDefensiveTeams()
-            }
-        }
-    }
-}
-
 function drawGoals() {
     context.beginPath()
-    context.rect(goals.red.xPos, goals.red.yPos, GOAL_WIDTH, SCREEN_HEIGHT / 100)
+    context.rect(goals.red.xPos, goals.red.yPos, GOAL_WIDTH, visualViewport.height / 100)
     context.fillStyle = "white"
     context.fill()
     context.beginPath()
-    context.rect(goals.blue.xPos, goals.blue.yPos, GOAL_WIDTH, SCREEN_HEIGHT / 100)
+    context.rect(goals.blue.xPos, goals.blue.yPos, GOAL_WIDTH, visualViewport.height / 100)
     context.fillStyle = "white"
     context.fill()
 }
@@ -253,15 +237,14 @@ function setPlayerPaths() {
     for (let i = 0; i < bestDefensiveSpots.length; i++) {
         if (defensiveTeam[i] !== sentPlayer) setObjectTowardsSpotAtSpeed(defensiveTeam[i], bestDefensiveSpots[i], SLOW_SPEED)
     }
-    setObjectTowardsSpotAtSpeed(players.blue[players.blue.length - 1], {xPos: SCREEN_WIDTH / 2, yPos: SCREEN_HEIGHT - PIXEL_SHIM}, SLOW_SPEED)
-    setObjectTowardsSpotAtSpeed(players.red[players.red.length - 1], {xPos: SCREEN_WIDTH / 2, yPos: PIXEL_SHIM}, SLOW_SPEED)
+    setObjectTowardsSpotAtSpeed(players.blue[players.blue.length - 1], BLUE_GOALIE_SPOT, SLOW_SPEED)
+    setObjectTowardsSpotAtSpeed(players.red[players.red.length - 1], RED_GOALIE_SPOT, SLOW_SPEED)
 }
 
-// TODO: there's probably a cheaper way to write this
 function getBestOffensiveSpots() {
     let bestOffensiveSpots = []
-    for (let xPos = PIXEL_SHIM; xPos < SCREEN_WIDTH; xPos++) {
-        for (let yPos = PIXEL_SHIM; yPos < SCREEN_HEIGHT; yPos++) {
+    for (let xPos = PIXEL_SHIM; xPos < visualViewport.width; xPos++) {
+        for (let yPos = PIXEL_SHIM; yPos < visualViewport.height; yPos++) {
             let spot = {
                 xPos: xPos,
                 yPos: yPos,
@@ -306,18 +289,18 @@ function setBallPath() {
     let backwardKickTarget = getBackwardKickTarget()
     let isSetToDribbleForward = ballPossessor.yPosChangePerFrame > 0
     if (forwardKickTarget) {
-        setObjectTowardsSpotAtSpeed(ball, forwardKickTarget, FAST_SPEED)
         isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
+        setObjectTowardsSpotAtSpeed(ball, forwardKickTarget, FAST_SPEED)
     } else if (isSetToDribbleForward) {
         //do nothing because ballPossessor is already set to dribble forward toward a bestOffensiveSpot
     } else if (backwardKickTarget) {
         // TODO: duplicate code
-        setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
         isSendingBall = true
         ballPossessor = {}
         hasBeenIntercepted = false
+        setObjectTowardsSpotAtSpeed(ball, backwardKickTarget, FAST_SPEED)
     } else {
         //do nothing because ballPossessor is already set to dribble backward toward a bestOffensiveSpot
     }
@@ -325,10 +308,10 @@ function setBallPath() {
 
 function getForwardKickTarget() {
     let shotTarget = {
-        xPos: RED_TEAM_SHOT_TARGETS[Math.floor(Math.random() * 2)],
-        yPos: SCREEN_HEIGHT
+        xPos: RED_TEAM_SHOT_TARGETS[Math.floor(Math.random() * RED_TEAM_SHOT_TARGETS.length)],
+        yPos: visualViewport.height
     }
-    if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > SCREEN_HEIGHT / 2) {
+    if (isPathClear(ballPossessor, shotTarget) && ballPossessor.yPos > visualViewport.height / 2) {
         return shotTarget
     }
     return _getKickTargetByDirection("forward")
@@ -338,8 +321,7 @@ function getBackwardKickTarget() {
     return _getKickTargetByDirection("backward")
 }
 
-// TODO: include shots on goal
-function _getKickTargetByDirection(direction) { // include shots on goal!
+function _getKickTargetByDirection(direction) {
     let kickTarget = null
     for (let i = 0; i < players.red.length; i++) {
         let redPlayer = players.red[i]
@@ -377,7 +359,25 @@ function isPathClear(startPoint, endPoint) {
     return true
 }
 
-// TODO: break up
+function handlePlayerCollision() {
+    // for (let i = 0; i < players.blue.length; i++) {
+    //     let bluePlayer = players.blue[i]
+    //     for (let ii = 0; ii < players.red.length; ii++) {
+    //         let redPlayer = players.red[i]
+    //         if ((bluePlayer === ballPossessor || redPlayer === ballPossessor) && bluePlayer.xPos - redPlayer.xPos < PLAYER_RADIUS*6 && bluePlayer.yPos - redPlayer.yPos < PLAYER_RADIUS*6) {
+    //             redPlayer.xPosChangePerFrame = 0
+    //             redPlayer.yPosChangePerFrame = 0
+    //             if ((Math.abs(bluePlayer.xPos - ball.xPos) + Math.abs(bluePlayer.yPos - ball.yPos)) < (Math.abs(redPlayer.xPos - ball.xPos) + Math.abs(redPlayer.yPos - ball.yPos))) {
+    //                 ballPossessor = bluePlayer
+    //             } else {
+    //                 ballPossessor = redPlayer
+    //             }
+    //             setOffensiveAndDefensiveTeams()
+    //         }
+    //     }
+    // }
+}
+
 function movePlayers() {
     let teams = [players.blue, players.red]
     for (let i = 0; i < teams.length; i++) {
@@ -400,11 +400,12 @@ function movePlayers() {
                     playerClosestToBall.distanceFromBall = distanceFromBall
                 }
             }
+            switchPossessionIfTackled(player)
             player.xPos += player.xPosChangePerFrame
             player.yPos += player.yPosChangePerFrame
             bounceObjectIfOut(player)
         }
-        let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && SCREEN_HEIGHT - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
+        let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && visualViewport.height - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
         let isRedGoalieMakingSave = playerClosestToBall.player === players.red[players.red.length - 1] && playerClosestToBall.player.yPos < FARNESS_THRESHOLD
         let speed = (isBlueGoalieMakingSave || isRedGoalieMakingSave) ? FAST_SPEED : SLOW_SPEED
         playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * speed
@@ -417,26 +418,34 @@ function movePlayers() {
 function bounceObjectIfOut(object) {
     if (object.xPos < PIXEL_SHIM) {
         object.xPosChangePerFrame = Math.abs(object.xPosChangePerFrame)
-    } else if (object.xPos > SCREEN_WIDTH - PIXEL_SHIM) {
+    } else if (object.xPos > visualViewport.width - PIXEL_SHIM) {
         object.xPosChangePerFrame = -Math.abs(object.xPosChangePerFrame)
     } else if (object.yPos < PIXEL_SHIM) {
         object.yPosChangePerFrame = Math.abs(object.yPosChangePerFrame)
-    } else if (object.yPos > SCREEN_HEIGHT - PIXEL_SHIM) {
+    } else if (object.yPos > visualViewport.height - PIXEL_SHIM) {
         object.yPosChangePerFrame = -Math.abs(object.yPosChangePerFrame)
     }
 }
 
-// TODO: WIP unused
 function switchPossessionIfTackled(player) {
-    for (let i = 0; i < players.blue.concat(players.red).length; i++) {
-        let interceptingPlayer = players.blue.concat(players.red)[i]
-        let isHorizontallyAlignedWithPlayer = (player.xPos > interceptingPlayer.xPos - PLAYER_RADIUS) && (player.xPos < interceptingPlayer.xPos + PLAYER_RADIUS)
-        let isVerticallyAlignedWithPlayer = (player.yPos > interceptingPlayer.yPos - PLAYER_RADIUS) && (player.yPos < interceptingPlayer.yPos + PLAYER_RADIUS)
-        if (player !== interceptingPlayer && isHorizontallyAlignedWithPlayer && isVerticallyAlignedWithPlayer) {
-            ballPossessor = interceptingPlayer
-            setOffensiveAndDefensiveTeams()
-        }
-    }
+    // for (let i = 0; i < players.blue.concat(players.red).length; i++) {
+    //     let interceptingPlayer = players.blue.concat(players.red)[i]
+    //     let isHorizontallyAlignedWithPlayer = (player.xPos > interceptingPlayer.xPos - PLAYER_RADIUS) && (player.xPos < interceptingPlayer.xPos + PLAYER_RADIUS)
+    //     let isVerticallyAlignedWithPlayer = (player.yPos > interceptingPlayer.yPos - PLAYER_RADIUS) && (player.yPos < interceptingPlayer.yPos + PLAYER_RADIUS)
+    //     let isFartherFromBall = ((Math.abs(interceptingPlayer.xPos - ball.xPos) + Math.abs(interceptingPlayer.yPos - ball.yPos)) < (Math.abs(player.xPos - ball.xPos) + Math.abs(player.yPos - ball.yPos)))
+    //     if (player === ballPossessor && player !== interceptingPlayer && isHorizontallyAlignedWithPlayer && isVerticallyAlignedWithPlayer && !isFartherFromBall) {
+    //         ballPossessor = interceptingPlayer
+    //         player.xPosChangePerFrame = -player.xPosChangePerFrame
+    //         player.yPosChangePerFrame = -player.yPosChangePerFrame
+    //         setOffensiveAndDefensiveTeams()
+    //         ball.xPos = interceptingPlayer.xPos
+    //         if (interceptingPlayer in players.blue) {
+    //             ball.yPos = interceptingPlayer.yPos - PLAYER_RADIUS
+    //         } else {
+    //             ball.yPos = interceptingPlayer.yPos + PLAYER_RADIUS
+    //         }
+    //     }
+    // }
 }
 
 function moveBall() {
