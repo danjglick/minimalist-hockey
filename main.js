@@ -1,5 +1,5 @@
 /* TODO:
-collisions (combine into one function, make so players can't intersect, handleGoals)
+collisions (combine into one function, make so players can't intersect, handleGOALS)
 better player-sends and player-dribbles (think: better destinations, longer, staggered-in-randomized order, deceleration, drag-to-dribble)
 change player skill levels via difficulty slider and via blue player emotions (cute leeetle emoticons in their big round faces)
 menu and scoreboard (if a team goal total % 3 == 0: ask user if want to restart or continue)
@@ -27,6 +27,16 @@ const RED_GOALIE_SPOT = {
 const DIRECTIONS = {
     FORWARD: "forward",
     BACKWARD: "backward"
+}
+const GOALS = {
+    red: {
+        xPos: (visualViewport.width - (PLAYER_RADIUS * 6)) / 2,
+        yPos: 0
+    },
+    blue: {
+        xPos: (visualViewport.width - (PLAYER_RADIUS * 6)) / 2,
+        yPos: visualViewport.height - PIXEL_SHIM
+    }
 }
 
 let canvas;
@@ -94,16 +104,6 @@ let ball = {
     yPos: visualViewport.height / 2,
     xPosChangePerFrame: 0,
     yPosChangePerFrame: 0
-}
-let goals = {
-    red: {
-        xPos: (visualViewport.width - (PLAYER_RADIUS * 6)) / 2,
-        yPos: 0
-    },
-    blue: {
-        xPos: (visualViewport.width - (PLAYER_RADIUS * 6)) / 2,
-        yPos: visualViewport.height - PIXEL_SHIM
-    }
 }
 let touch1 = {
     xPos: 0,
@@ -176,13 +176,14 @@ function setObjectTowardsSpotAtSpeed(object, spot, speed) {
 function gameLoop() {
     if (!isPaused) {
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 0) setPlayerPaths()
-        movePlayers()
         if (offensiveTeam === players.red) setBallPath()
+        movePlayers()
         moveBall()
+        let collisions = getCollisions()
         frameCount++
     }
     context.clearRect(0, 0, canvas.width, canvas.height)
-    drawGoals()
+    drawGOALS()
     drawBall()
     drawPlayers()
     setTimeout(gameLoop, MILLISECONDS_PER_FRAME)
@@ -241,71 +242,6 @@ function getBestDefensiveSpots() {
         })
     }
     return bestDefensiveSpots
-}
-
-function movePlayers() {
-    let teams = [players.blue, players.red]
-    for (let i = 0; i < teams.length; i++) {
-        let team = teams[i]
-        if (sentPlayerFramesLeft > 0) {
-            sentPlayer.xPos += sentPlayer.xPosChangePerFrame
-            sentPlayer.yPos += sentPlayer.yPosChangePerFrame
-            sentPlayerFramesLeft--
-        }
-        let playerClosestToBall = {
-            player: {},
-            distanceFromBall: 0
-        }
-        for (let i = 0; i < team.length; i++) {
-            let player = team[i]
-            if (Object.keys(ballPossessor).length === 0) {
-                let distanceFromBall = Math.abs(ball.xPos - player.xPos) + Math.abs(ball.yPos - player.yPos)
-                if (Object.keys(playerClosestToBall.player).length === 0 || distanceFromBall < playerClosestToBall.distanceFromBall) {
-                    playerClosestToBall.player = player
-                    playerClosestToBall.distanceFromBall = distanceFromBall
-                }
-            }
-            player.xPos += player.xPosChangePerFrame
-            player.yPos += player.yPosChangePerFrame
-            bounceObjectIfOut(player)
-        }
-        let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && visualViewport.height - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
-        let isRedGoalieMakingSave = playerClosestToBall.player === players.red[players.red.length - 1] && playerClosestToBall.player.yPos < FARNESS_THRESHOLD
-        let speed = (isBlueGoalieMakingSave || isRedGoalieMakingSave) ? FAST_SPEED : SLOW_SPEED
-        playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * speed
-        playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * speed
-        playerClosestToBall.player.xPos += playerClosestToBall.player.xPosChangePerFrame
-        playerClosestToBall.player.yPos += playerClosestToBall.player.yPosChangePerFrame
-    }
-}
-
-function setOffensiveAndDefensiveTeams() {
-    for (let i = 0; i < players.blue.length; i++) {
-        if (ballPossessor === players.blue[i]) {
-            offensiveTeam = players.blue
-            defensiveTeam = players.red
-            return
-        }
-    }
-    for (let i = 0; i < players.red.length; i++) {
-        if (ballPossessor === players.red[i]) {
-            offensiveTeam = players.red
-            defensiveTeam = players.blue
-            return
-        }
-    }
-}
-
-function bounceObjectIfOut(object) {
-    if (object.xPos < PIXEL_SHIM) {
-        object.xPosChangePerFrame = Math.abs(object.xPosChangePerFrame)
-    } else if (object.xPos > visualViewport.width - PIXEL_SHIM) {
-        object.xPosChangePerFrame = -Math.abs(object.xPosChangePerFrame)
-    } else if (object.yPos < PIXEL_SHIM) {
-        object.yPosChangePerFrame = Math.abs(object.yPosChangePerFrame)
-    } else if (object.yPos > visualViewport.height - PIXEL_SHIM) {
-        object.yPosChangePerFrame = -Math.abs(object.yPosChangePerFrame)
-    }
 }
 
 function setBallPath() {
@@ -371,6 +307,72 @@ function isPathClear(startPoint, endPoint) {
     return true
 }
 
+function movePlayers() {
+    let teams = [players.blue, players.red]
+    for (let i = 0; i < teams.length; i++) {
+        let team = teams[i]
+        if (sentPlayerFramesLeft > 0) {
+            sentPlayer.xPos += sentPlayer.xPosChangePerFrame
+            sentPlayer.yPos += sentPlayer.yPosChangePerFrame
+            sentPlayerFramesLeft--
+        }
+        let playerClosestToBall = {
+            player: {},
+            distanceFromBall: 0
+        }
+        for (let i = 0; i < team.length; i++) {
+            let player = team[i]
+            if (Object.keys(ballPossessor).length === 0) {
+                let distanceFromBall = Math.abs(ball.xPos - player.xPos) + Math.abs(ball.yPos - player.yPos)
+                if (Object.keys(playerClosestToBall.player).length === 0 || distanceFromBall < playerClosestToBall.distanceFromBall) {
+                    playerClosestToBall.player = player
+                    playerClosestToBall.distanceFromBall = distanceFromBall
+                }
+            }
+            player.xPos += player.xPosChangePerFrame
+            player.yPos += player.yPosChangePerFrame
+            bounceObjectIfOut(player)
+        }
+        let isBlueGoalieMakingSave = playerClosestToBall.player === players.blue[players.blue.length - 1] && visualViewport.height - playerClosestToBall.player.yPos < FARNESS_THRESHOLD
+        let isRedGoalieMakingSave = playerClosestToBall.player === players.red[players.red.length - 1] && playerClosestToBall.player.yPos < FARNESS_THRESHOLD
+        let speed = (isBlueGoalieMakingSave || isRedGoalieMakingSave) ? FAST_SPEED : SLOW_SPEED
+        playerClosestToBall.player.xPosChangePerFrame = (ball.xPos - playerClosestToBall.player.xPos) * speed
+        playerClosestToBall.player.yPosChangePerFrame = (ball.yPos - playerClosestToBall.player.yPos) * speed
+        playerClosestToBall.player.xPos += playerClosestToBall.player.xPosChangePerFrame
+        playerClosestToBall.player.yPos += playerClosestToBall.player.yPosChangePerFrame
+    }
+}
+
+function setOffensiveAndDefensiveTeams() {
+    for (let i = 0; i < players.blue.length; i++) {
+        if (ballPossessor === players.blue[i]) {
+            offensiveTeam = players.blue
+            defensiveTeam = players.red
+            return
+        }
+    }
+    for (let i = 0; i < players.red.length; i++) {
+        if (ballPossessor === players.red[i]) {
+            offensiveTeam = players.red
+            defensiveTeam = players.blue
+            return
+        }
+    }
+}
+
+//TODO: OBJECT/WALL
+function bounceObjectIfOut(object) {
+    if (object.xPos < PIXEL_SHIM) {
+        object.xPosChangePerFrame = Math.abs(object.xPosChangePerFrame)
+    } else if (object.xPos > visualViewport.width - PIXEL_SHIM) {
+        object.xPosChangePerFrame = -Math.abs(object.xPosChangePerFrame)
+    } else if (object.yPos < PIXEL_SHIM) {
+        object.yPosChangePerFrame = Math.abs(object.yPosChangePerFrame)
+    } else if (object.yPos > visualViewport.height - PIXEL_SHIM) {
+        object.yPosChangePerFrame = -Math.abs(object.yPosChangePerFrame)
+    }
+}
+
 function moveBall() {
     if (Object.keys(ballPossessor).length > 0) {
         ball.xPosChangePerFrame = ballPossessor.xPosChangePerFrame
@@ -382,6 +384,7 @@ function moveBall() {
     stopBallIfIntercepted()
 }
 
+//TODO: PLAYER/BALL
 function stopBallIfIntercepted() {
     for (let i = 0; i < players.blue.concat(players.red).length; i++) {
         let player = players.blue.concat(players.red)[i]
@@ -393,6 +396,60 @@ function stopBallIfIntercepted() {
             setOffensiveAndDefensiveTeams()
             setPlayerPaths()
         }
+    }
+}
+
+function getCollisions() {
+    let collisions = {
+        playerPlayer: [],
+        playerBall: [],
+        objectWall: [],
+        ballGoal: []
+    }
+    let playersList = players.blue.concat(players.red)
+    for (let i = 0; i < playersList.length; i++) {
+        let playerA = playersList[i]
+        for (let ii = 0; ii < playersList.length; ii++) {
+            let playerB = playersList[ii]
+            if (playerA !== playerB && isObjectCloseToObject(playerA, PLAYER_RADIUS * 2, playerB)) {
+                collisions.playerPlayer.push([playerA, playerB])
+            }
+        }
+        if (playerA !== ballPossessor && isObjectCloseToObject(playerA, PLAYER_RADIUS + BALL_RADIUS, ball)) {
+            collisions.playerBall.push([playerA, ball])
+        }
+        let wall = getWallInCollisionWith(playerA)
+        if (wall) {
+            collisions.objectWall.push([playerA, wall])
+        }
+        wall = getWallInCollisionWith(ball)
+        if (wall) {
+            collisions.objectWall.push([ball, wall])
+        }
+        if (ball.xPos >= GOALS.blue.xPos && ball.xPos <= GOALS.blue.xPos + GOAL_WIDTH) {
+            if (ball.yPos >= GOALS.blue.yPos) {
+                collisions.ballGoal.push([ball, GOALS.blue])
+            } else if (ball.yPos <= GOALS.red.yPos) {
+                collisions.ballGoal.push([ball, GOALS.red])
+            }
+        }
+    }
+    return collisions
+}
+
+function isObjectCloseToObject(objectA, distance, objectB) {
+    return Math.abs(objectA.xPos - objectB.xPos) < distance && Math.abs(objectA.yPos - objectB.yPos) < distance
+}
+
+function getWallInCollisionWith(object) {
+    if (object.xPos < PIXEL_SHIM) {
+        return "East"
+    } else if (object.xPos > visualViewport.width - PIXEL_SHIM) {
+        return "West"
+    } else if (object.yPos < PIXEL_SHIM) {
+        return "North"
+    } else if (object.yPos > visualViewport.height - PIXEL_SHIM) {
+        return "South"
     }
 }
 
@@ -420,13 +477,13 @@ function drawBall() {
     context.fill()
 }
 
-function drawGoals() {
+function drawGOALS() {
     context.beginPath()
-    context.rect(goals.red.xPos, goals.red.yPos, GOAL_WIDTH, visualViewport.height / 100)
+    context.rect(GOALS.red.xPos, GOALS.red.yPos, GOAL_WIDTH, visualViewport.height / 100)
     context.fillStyle = "white"
     context.fill()
     context.beginPath()
-    context.rect(goals.blue.xPos, goals.blue.yPos, GOAL_WIDTH, visualViewport.height / 100)
+    context.rect(GOALS.blue.xPos, GOALS.blue.yPos, GOAL_WIDTH, visualViewport.height / 100)
     context.fillStyle = "white"
     context.fill()
 }
