@@ -1,5 +1,4 @@
 /* TODO:
-collisions (combine into one function, make so players can't intersect, handleGOALS)
 better player-sends and player-dribbles (think: better destinations, longer, staggered-in-randomized order, deceleration, drag-to-dribble)
 change player skill levels via difficulty slider and via blue player emotions (cute leeetle emoticons in their big round faces)
 menu and scoreboard (if a team goal total % 3 == 0: ask user if want to restart or continue)
@@ -43,6 +42,62 @@ const WALLS = {
     right: "right",
     top: "top",
     bottom: "bottom"
+}
+
+const PLAYER_STARTING_POSITIONS = {
+    blue: [
+        {
+            xPos: visualViewport.width / 2,
+            yPos: (visualViewport.height / 2) + PIXEL_SHIM,
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        },
+        {
+            xPos: visualViewport.width / 5,
+            yPos: visualViewport.height * 0.75,
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        },
+        {
+            xPos: visualViewport.width * 0.8,
+            yPos: visualViewport.height * 0.75,
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        },
+        {
+            xPos: BLUE_GOALIE_SPOT.xPos,
+            yPos: BLUE_GOALIE_SPOT.yPos,
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        }
+
+    ],
+    red: [
+        {
+            xPos: visualViewport.width / 2,
+            yPos: (visualViewport.height / 2) - (PIXEL_SHIM * 3),
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        },
+        {
+            xPos: visualViewport.width / 5,
+            yPos: visualViewport.height / 4,
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        },
+        {
+            xPos: visualViewport.width * 0.8,
+            yPos: visualViewport.height / 4,
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        },
+        {
+            xPos: RED_GOALIE_SPOT.xPos,
+            yPos: RED_GOALIE_SPOT.yPos,
+            xPosChangePerFrame: 0,
+            yPosChangePerFrame: 0
+        },
+    ]
 }
 
 let canvas;
@@ -127,6 +182,10 @@ let frameCount = 0
 let isPaused = true
 let sentPlayer = {}
 let sentPlayerFramesLeft = 0
+let score = {
+    blue: 0,
+    red: 0
+}
 
 function initializeGame() {
     canvas = document.getElementById("canvas")
@@ -187,18 +246,10 @@ function gameLoop() {
         movePlayers()
         moveBall()
         let collisions = getCollisions()
-        for (let i = 0; i < collisions.playerPlayer.length; i++) {
-            handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB)
-        }
-        for (let i = 0; i < collisions.playerBall.length; i++) {
-            handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball)
-        }
-        for (let i = 0; i < collisions.objectWall.length; i++) {
-            handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall)
-        }
-        for (let i = 0; i < collisions.ballGoal.length; i++) {
-            // handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal)
-        }
+        //for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
+        for (let i = 0; i < collisions.playerBall.length; i++) { handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball) }
+        for (let i = 0; i < collisions.objectWall.length; i++) { handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall) }
+        for (let i = 0; i < collisions.ballGoal.length; i++) { handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal) }
         frameCount++
     }
     context.clearRect(0, 0, canvas.width, canvas.height)
@@ -432,7 +483,7 @@ function getCollisions() {
                     ball: ball,
                     goal: GOALS.blue
                 }]
-            } else if (ball.yPos <= GOALS.red.yPos) {
+            } else if (ball.yPos <= GOALS.red.yPos + PIXEL_SHIM) {
                 collisions.ballGoal = [{
                     ball: ball,
                     goal: GOALS.red
@@ -467,10 +518,12 @@ function handlePlayerPlayerCollision(playerA, playerB) {
 }
 
 function handlePlayerBallCollision(player, ball) {
-    ballPossessor = player
-    isSendingBall = false
-    setOffensiveAndDefensiveTeams()
-    setPlayerPaths()
+    if ((player in defensiveTeam || isSendingBall) && ballPossessor !== player) {
+        ballPossessor = player
+        isSendingBall = false
+        setOffensiveAndDefensiveTeams()
+        setPlayerPaths()
+    }
 }
 
 function handleObjectWallCollision(object, wall) {
@@ -483,6 +536,77 @@ function handleObjectWallCollision(object, wall) {
     } else if (wall === WALLS.bottom) {
         object.yPosChangePerFrame = -Math.abs(object.yPosChangePerFrame)
     }
+}
+
+function handleBallGoalCollision(ball, goal) {
+    ball.xPos = visualViewport.width / 2
+    ball.yPos = visualViewport.height / 2
+    ball.xPosChangePerFrame = 0
+    ball.yPosChangePerFrame = 0
+    players = {
+        blue: [
+            {
+                xPos: visualViewport.width / 2,
+                yPos: (visualViewport.height / 2) + PIXEL_SHIM,
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            },
+            {
+                xPos: visualViewport.width / 5,
+                yPos: visualViewport.height * 0.75,
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            },
+            {
+                xPos: visualViewport.width * 0.8,
+                yPos: visualViewport.height * 0.75,
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            },
+            {
+                xPos: BLUE_GOALIE_SPOT.xPos,
+                yPos: BLUE_GOALIE_SPOT.yPos,
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            }
+
+        ],
+        red: [
+            {
+                xPos: visualViewport.width / 2,
+                yPos: (visualViewport.height / 2) - (PIXEL_SHIM * 3),
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            },
+            {
+                xPos: visualViewport.width / 5,
+                yPos: visualViewport.height / 4,
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            },
+            {
+                xPos: visualViewport.width * 0.8,
+                yPos: visualViewport.height / 4,
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            },
+            {
+                xPos: RED_GOALIE_SPOT.xPos,
+                yPos: RED_GOALIE_SPOT.yPos,
+                xPosChangePerFrame: 0,
+                yPosChangePerFrame: 0
+            },
+        ]
+    }
+    if (goal === GOALS.blue) {
+        score.red++
+        isPaused = true
+    } else {
+        score.blue++
+        players.blue[0].yPos = visualViewport.height / 2 + PIXEL_SHIM * 3
+        players.red[0].yPos = visualViewport.height / 2 - PIXEL_SHIM
+    }
+    alert(`Blue ${score.blue} - Red ${score.red}`)
 }
 
 function drawPlayers() {
