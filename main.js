@@ -1,7 +1,8 @@
 /* TODO:
+polish collision checker/handler
 better player-sends and player-dribbles (think: better destinations, longer, staggered-in-randomized order, deceleration, drag-to-dribble)
+scoreboard and menu
 change player skill levels via difficulty slider and via blue player emotions (cute leeetle emoticons in their big round faces)
-menu and scoreboard (if a team goal total % 3 == 0: ask user if want to restart or continue)
 */
 
 const MILLISECONDS_PER_FRAME = 16
@@ -246,7 +247,7 @@ function gameLoop() {
         movePlayers()
         moveBall()
         let collisions = getCollisions()
-        for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
+        // for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
         for (let i = 0; i < collisions.playerBall.length; i++) { handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball) }
         for (let i = 0; i < collisions.objectWall.length; i++) { handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall) }
         for (let i = 0; i < collisions.ballGoal.length; i++) { handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal) }
