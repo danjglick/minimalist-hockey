@@ -484,7 +484,7 @@ function getCollisions() {
                     ball: ball,
                     goal: GOALS.blue
                 }]
-            } else if (ball.yPos <= GOALS.red.yPos + PIXEL_SHIM) {
+            } else if (ball.yPos <= GOALS.red.yPos) {
                 collisions.ballGoal = [{
                     ball: ball,
                     goal: GOALS.red
