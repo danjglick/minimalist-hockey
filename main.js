@@ -183,7 +183,7 @@ function setObjectTowardsSpotAtSpeed(object, spot, speed) {
 function gameLoop() {
     if (!isPaused) {
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 0) setPlayerPaths()
-        // if (offensiveTeam === players.red && !isSendingBall) setBallPath()
+        if (offensiveTeam === players.red && !isSendingBall) setBallPath()
         movePlayers()
         moveBall()
         let collisions = getCollisions()
