@@ -242,7 +242,8 @@ function setObjectTowardsSpotAtSpeed(object, spot, speed) {
 
 function gameLoop() {
     if (!isPaused) {
-        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 0) setPlayerPaths()
+        frameCount++
+        if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
         if (offensiveTeam === players.red && !isSendingBall) setBallPath()
         movePlayers()
         moveBall()
@@ -251,7 +252,6 @@ function gameLoop() {
         for (let i = 0; i < collisions.playerBall.length; i++) { handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball) }
         for (let i = 0; i < collisions.objectWall.length; i++) { handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall) }
         for (let i = 0; i < collisions.ballGoal.length; i++) { handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal) }
-        frameCount++
     }
     context.clearRect(0, 0, canvas.width, canvas.height)
     drawGoals()
