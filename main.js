@@ -1,5 +1,4 @@
 /* TODO:
-polish collision checker/handler
 better player-sends and player-dribbles (think: better destinations, longer, staggered-in-randomized order, deceleration, drag-to-dribble)
 scoreboard and menu
 change player skill levels via difficulty slider and via blue player emotions (cute leeetle emoticons in their big round faces)
@@ -99,6 +98,7 @@ const PLAYERS_STARTING_POSITIONS = {
         },
     ]
 }
+const FRAMES_PER_REPOSSESSION_FREEZE = 30
 
 let canvas;
 let context;
@@ -123,6 +123,8 @@ let touch2 = {
 let offensiveTeam = players.blue
 let defensiveTeam = players.red
 let ballPossessor = players.blue[0]
+let recentBallPossessor = ballPossessor
+let framesLeftRepossessionFreeze = FRAMES_PER_REPOSSESSION_FREEZE
 let isSendingBall = false
 let frameCount = 0
 let isPaused = true
@@ -189,11 +191,11 @@ function gameLoop() {
     if (!isPaused) {
         frameCount++
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
-        // if (offensiveTeam === players.red && !isSendingBall) setBallPath()
+        if (offensiveTeam === players.red && !isSendingBall) setBallPath()
         movePlayers()
         moveBall()
         let collisions = getCollisions()
-        // for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
+        for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
         for (let i = 0; i < collisions.playerBall.length; i++) { handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball) }
         for (let i = 0; i < collisions.objectWall.length; i++) { handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall) }
         for (let i = 0; i < collisions.ballGoal.length; i++) { handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal) }
@@ -403,7 +405,7 @@ function getCollisions() {
                 })
             }
         }
-        if (player !== ballPossessor && isObjectCloseToObject(player, PLAYER_RADIUS, ball)) {
+        if (player !== recentBallPossessor && isObjectCloseToObject(player, PLAYER_RADIUS, ball)) {
             collisions.playerBall = [{
                 player: player,
                 ball: ball
@@ -437,6 +439,11 @@ function getCollisions() {
             }
         }
     }
+    if (framesLeftRepossessionFreeze > 0) {
+        framesLeftRepossessionFreeze--
+    } else {
+        recentBallPossessor = {}
+    }
     return collisions
 }
 
@@ -457,19 +464,20 @@ function getWallCollidedIntoByObject(object) {
 }
 
 function handlePlayerPlayerCollision(playerA, playerB) {
-    playerA.xPos += playerB.xPosChangePerFrame
-    playerA.yPos += playerB.yPosChangePerFrame
-    playerB.xPos += playerA.xPosChangePerFrame
-    playerB.yPos += playerA.yPosChangePerFrame
+    playerA.xPosChangePerFrame = playerB.xPosChangePerFrame
+    playerA.yPosChangePerFrame = playerB.yPosChangePerFrame
+    playerB.xPosChangePerFrame = playerA.xPosChangePerFrame
+    playerB.yPosChangePerFrame = playerA.yPosChangePerFrame
+
 }
 
 function handlePlayerBallCollision(player, ball) {
-    if ((player in defensiveTeam || isSendingBall) && ballPossessor !== player) {
-        ballPossessor = player
-        isSendingBall = false
-        setOffensiveAndDefensiveTeams()
-        setPlayerPaths()
-    }
+    recentBallPossessor = ballPossessor
+    framesLeftRepossessionFreeze = FRAMES_PER_REPOSSESSION_FREEZE
+    ballPossessor = player
+    isSendingBall = false
+    setOffensiveAndDefensiveTeams()
+    setPlayerPaths()
 }
 
 function handleObjectWallCollision(object, wall) {
