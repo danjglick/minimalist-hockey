@@ -44,8 +44,7 @@ const WALLS = {
     top: "top",
     bottom: "bottom"
 }
-
-const PLAYER_STARTING_POSITIONS = {
+const PLAYERS_STARTING_POSITIONS = {
     blue: [
         {
             xPos: visualViewport.width / 2,
@@ -103,61 +102,7 @@ const PLAYER_STARTING_POSITIONS = {
 
 let canvas;
 let context;
-let players = {
-    blue: [
-        {
-            xPos: visualViewport.width / 2,
-            yPos: (visualViewport.height / 2) + PIXEL_SHIM,
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        },
-        {
-            xPos: visualViewport.width / 5,
-            yPos: visualViewport.height * 0.75,
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        },
-        {
-            xPos: visualViewport.width * 0.8,
-            yPos: visualViewport.height * 0.75,
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        },
-        {
-            xPos: BLUE_GOALIE_SPOT.xPos,
-            yPos: BLUE_GOALIE_SPOT.yPos,
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        }
-
-    ],
-    red: [
-        {
-            xPos: visualViewport.width /2,
-            yPos: (visualViewport.height / 2) - (PIXEL_SHIM * 3),
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        },
-        {
-            xPos: visualViewport.width / 5,
-            yPos: visualViewport.height / 4,
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        },
-        {
-            xPos: visualViewport.width * 0.8,
-            yPos: visualViewport.height / 4,
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        },
-        {
-            xPos: RED_GOALIE_SPOT.xPos,
-            yPos: RED_GOALIE_SPOT.yPos,
-            xPosChangePerFrame: 0,
-            yPosChangePerFrame: 0
-        },
-    ]
-}
+let players = JSON.parse(JSON.stringify(PLAYERS_STARTING_POSITIONS))
 let blueGoalie = players.blue[players.blue.length - 1]
 let redGoalie = players.red[players.red.length - 1]
 let ball = {
@@ -244,11 +189,11 @@ function gameLoop() {
     if (!isPaused) {
         frameCount++
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
-        if (offensiveTeam === players.red && !isSendingBall) setBallPath()
+        // if (offensiveTeam === players.red && !isSendingBall) setBallPath()
         movePlayers()
         moveBall()
         let collisions = getCollisions()
-        for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
+        // for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
         for (let i = 0; i < collisions.playerBall.length; i++) { handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball) }
         for (let i = 0; i < collisions.objectWall.length; i++) { handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall) }
         for (let i = 0; i < collisions.ballGoal.length; i++) { handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal) }
@@ -544,61 +489,7 @@ function handleBallGoalCollision(ball, goal) {
     ball.yPos = visualViewport.height / 2
     ball.xPosChangePerFrame = 0
     ball.yPosChangePerFrame = 0
-    players = {
-        blue: [
-            {
-                xPos: visualViewport.width / 2,
-                yPos: (visualViewport.height / 2) + PIXEL_SHIM,
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            },
-            {
-                xPos: visualViewport.width / 5,
-                yPos: visualViewport.height * 0.75,
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            },
-            {
-                xPos: visualViewport.width * 0.8,
-                yPos: visualViewport.height * 0.75,
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            },
-            {
-                xPos: BLUE_GOALIE_SPOT.xPos,
-                yPos: BLUE_GOALIE_SPOT.yPos,
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            }
-
-        ],
-        red: [
-            {
-                xPos: visualViewport.width / 2,
-                yPos: (visualViewport.height / 2) - (PIXEL_SHIM * 3),
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            },
-            {
-                xPos: visualViewport.width / 5,
-                yPos: visualViewport.height / 4,
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            },
-            {
-                xPos: visualViewport.width * 0.8,
-                yPos: visualViewport.height / 4,
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            },
-            {
-                xPos: RED_GOALIE_SPOT.xPos,
-                yPos: RED_GOALIE_SPOT.yPos,
-                xPosChangePerFrame: 0,
-                yPosChangePerFrame: 0
-            },
-        ]
-    }
+    players = PLAYERS_STARTING_POSITIONS
     if (goal === GOALS.blue) {
         score.red++
         isPaused = true
