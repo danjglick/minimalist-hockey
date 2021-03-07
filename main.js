@@ -247,7 +247,7 @@ function gameLoop() {
         movePlayers()
         moveBall()
         let collisions = getCollisions()
-        // for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
+        for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
         for (let i = 0; i < collisions.playerBall.length; i++) { handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball) }
         for (let i = 0; i < collisions.objectWall.length; i++) { handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall) }
         for (let i = 0; i < collisions.ballGoal.length; i++) { handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal) }
