@@ -190,12 +190,13 @@ function setObjectTowardsSpotAtSpeed(object, spot, speed) {
 function gameLoop() {
     if (!isPaused) {
         frameCount++
+        // evil but what if you set this to something random like anytime the xPos of red player #4 is divisible by 3
         if (frameCount % FRAMES_BETWEEN_PLAYER_PATH_RESETS === 0 || frameCount === 1) setPlayerPaths()
         if (offensiveTeam === players.red && !isSendingBall) setBallPath()
         movePlayers()
         moveBall()
         let collisions = getCollisions()
-        for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
+        // for (let i = 0; i < collisions.playerPlayer.length; i++) { handlePlayerPlayerCollision(collisions.playerPlayer[i].playerA, collisions.playerPlayer[i].playerB) }
         for (let i = 0; i < collisions.playerBall.length; i++) { handlePlayerBallCollision(collisions.playerBall[i].player, collisions.playerBall[i].ball) }
         for (let i = 0; i < collisions.objectWall.length; i++) { handleObjectWallCollision(collisions.objectWall[i].object, collisions.objectWall[i].wall) }
         for (let i = 0; i < collisions.ballGoal.length; i++) { handleBallGoalCollision(collisions.ballGoal[i].ball, collisions.ballGoal[i].goal) }
