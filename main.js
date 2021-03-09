@@ -34,7 +34,7 @@ const GOALS = {
     },
     blue: {
         xPos: (visualViewport.width - (PLAYER_RADIUS * 7)) / 2,
-        yPos: visualViewport.height - 10
+        yPos: visualViewport.height - 20
     }
 }
 const WALLS = {
