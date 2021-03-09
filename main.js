@@ -21,7 +21,7 @@ const BLUE_GOALIE_SPOT = {
 }
 const RED_GOALIE_SPOT = {
     xPos: visualViewport.width / 2,
-    yPos: PIXEL_SHIM * 2
+    yPos: PIXEL_SHIM
 }
 const DIRECTIONS = {
     forward: "forward",
@@ -34,7 +34,7 @@ const GOALS = {
     },
     blue: {
         xPos: (visualViewport.width - (PLAYER_RADIUS * 7)) / 2,
-        yPos: visualViewport.height - 20
+        yPos: visualViewport.height - PIXEL_SHIM
     }
 }
 const WALLS = {
