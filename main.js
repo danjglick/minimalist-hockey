@@ -17,11 +17,11 @@ const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
 const RED_TEAM_SHOT_TARGETS = [(visualViewport.width / 2) + (GOAL_WIDTH / 3), (visualViewport.width / 2) - (GOAL_WIDTH / 3)]
 const BLUE_GOALIE_SPOT = {
     xPos: visualViewport.width / 2,
-    yPos: visualViewport.height - PIXEL_SHIM
+    yPos: visualViewport.height - PIXEL_SHIM * 2
 }
 const RED_GOALIE_SPOT = {
     xPos: visualViewport.width / 2,
-    yPos: PIXEL_SHIM
+    yPos: PIXEL_SHIM * 2
 }
 const DIRECTIONS = {
     forward: "forward",
@@ -34,7 +34,7 @@ const GOALS = {
     },
     blue: {
         xPos: (visualViewport.width - (PLAYER_RADIUS * 7)) / 2,
-        yPos: visualViewport.height - 20
+        yPos: visualViewport.height
     }
 }
 const WALLS = {
@@ -156,7 +156,7 @@ function determineIfSendingPlayerOrBall() {
         let bluePlayer = players.blue[i]
         let isTouchHorizontallyAlignedWithPlayer = (touch1.xPos > bluePlayer.xPos - PLAYER_RADIUS) && (touch1.xPos < bluePlayer.xPos + PLAYER_RADIUS)
         let isTouchVerticallyAlignedWithPlayer = (touch1.yPos > bluePlayer.yPos - PLAYER_RADIUS) && (touch1.yPos < bluePlayer.yPos + PLAYER_RADIUS)
-        if (isTouchHorizontallyAlignedWithPlayer && isTouchVerticallyAlignedWithPlayer) {
+        if (isObjectCloseToObject(touch1, PLAYER_RADIUS * 4, bluePlayer)) {
             let isPlayerHorizontallyAlignedWithBall = Math.abs(bluePlayer.xPos - ball.xPos) <= PIXEL_SHIM
             let isPlayerVerticallyAlignedWithBall = Math.abs(bluePlayer.yPos - ball.yPos) <= PIXEL_SHIM
             if (isPlayerHorizontallyAlignedWithBall && isPlayerVerticallyAlignedWithBall) {
