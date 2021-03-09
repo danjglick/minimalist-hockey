@@ -5,8 +5,8 @@ change player skill levels via difficulty slider and via blue player emotions (c
 */
 
 const MILLISECONDS_PER_FRAME = 16
-const PLAYER_RADIUS =  25
-const BALL_RADIUS = PLAYER_RADIUS / 2
+const PLAYER_RADIUS =  visualViewport.width / 20
+const BALL_RADIUS = PLAYER_RADIUS - 3
 const GOAL_WIDTH = PLAYER_RADIUS * 7
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
