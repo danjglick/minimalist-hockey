@@ -224,11 +224,11 @@ function getBestOffensiveSpots() {
             let spot = {
                 xPos: xPos,
                 yPos: yPos,
+                distance_from_goal: (offensiveTeam === players.blue ? yPos : canvas.height - yPos)
             }
-            let distanceFromGoal = (offensiveTeam === players.blue ? yPos : canvas.height - yPos)
             if (isObjectFarFromObjects(spot, FARNESS_THRESHOLD, defensiveTeam.concat(bestOffensiveSpots))) {
                 for (let i = 0; i < offensiveTeam.length - 1; i++) {
-                    if (!bestOffensiveSpots[i] || distanceFromGoal < bestOffensiveSpots[i].yPos) {
+                    if (!bestOffensiveSpots[i] || spot.distanceFromGoal < bestOffensiveSpots[i].distanceFromGoal) {
                         bestOffensiveSpots[i] = spot
                         break
                     }
@@ -453,6 +453,7 @@ function getWallCollidedIntoByObject(object) {
 function handlePlayerBallCollision(player, ball) {
     recentBallPossessor = ballPossessor
     framesLeftRepossessionFreeze = FRAMES_PER_REPOSSESSION_FREEZE
+
     ballPossessor = player
     isSendingBall = false
     setOffensiveAndDefensiveTeams()
