@@ -4,10 +4,11 @@ const BALL_RADIUS = PLAYER_RADIUS / 2
 const GOAL_WIDTH = PLAYER_RADIUS * 7
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
 const FRAMES_PER_SENT_PLAYER = 3
-const SLOW_SPEED = 0.005
+const SLOW_SPEED = 0.01
 const FAST_SPEED = 0.05
 const FARNESS_THRESHOLD = PLAYER_RADIUS * 5
 const FRAMES_BETWEEN_PLAYER_PATH_RESETS = 100
+const TACKLE_BLOWBACK_DISTANCE = PLAYER_RADIUS
 const RED_TEAM_SHOT_TARGETS = [(visualViewport.width / 2) + (GOAL_WIDTH / 3), (visualViewport.width / 2) - (GOAL_WIDTH / 3)]
 const BLUE_GOALIE_SPOT = {
   xPos: visualViewport.width / 2,
@@ -477,13 +478,13 @@ function getWallCollidedIntoByObject(object) {
 
 function handlePlayerBallCollision(player, ball) {
   if (
-    ballPossessor !== recentBallPossessor &&
-    isObjectCloseToObject(ballPossessor, PIXEL_SHIM, recentBallPossessor)
+    isObjectCloseToObject(ballPossessor, PIXEL_SHIM, recentBallPossessor) &&
+    ballPossessor !== recentBallPossessor 
   ) {
-    if (players.blue.includes(recentBallPossessor)) {
-      recentBallPossessor.yPos -= 100
+    if (Math.random() < 0.5) {
+      recentBallPossessor.xPos += TACKLE_BLOWBACK_DISTANCE
     } else {
-      recentBallPossessor.yPos += 100
+      recentBallPossessor.xPos -= TACKLE_BLOWBACK_DISTANCE
     }
   }
   recentBallPossessor = ballPossessor
