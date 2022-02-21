@@ -1,9 +1,3 @@
-/* TODO:
-better player-sends and player-dribbles (think: better destinations, longer, staggered-in-randomized order, deceleration, drag-to-dribble)
-scoreboard and menu
-change player skill levels via difficulty slider and via blue player emotions (cute leeetle emoticons in their big round faces)
-*/
-
 const MILLISECONDS_PER_FRAME = 16
 const PLAYER_RADIUS =  visualViewport.width / 15
 const BALL_RADIUS = PLAYER_RADIUS / 2
@@ -145,6 +139,7 @@ function initializeGame() {
     gameLoop()
 }
 
+
 function handleTouchstart(event) {
     touch1.xPos = event.touches[0].clientX
     touch1.yPos = event.touches[0].clientY
@@ -155,14 +150,14 @@ function determineIfSendingPlayerOrBall() {
     for (let i = 0; i < players.blue.length; i++) {
         let bluePlayer = players.blue[i]
         if (isObjectCloseToObject(touch1, PLAYER_RADIUS * 4, bluePlayer)) {
-            let isPlayerHorizontallyAlignedWithBall = Math.abs(bluePlayer.xPos - ball.xPos) <= PIXEL_SHIM
-            let isPlayerVerticallyAlignedWithBall = Math.abs(bluePlayer.yPos - ball.yPos) <= PIXEL_SHIM
-            if (isPlayerHorizontallyAlignedWithBall && isPlayerVerticallyAlignedWithBall) {
-                isSendingBall = true
-            }
-            else {
-                sentPlayer = bluePlayer
-            }
+          let isPlayerHorizontallyAlignedWithBall = Math.abs(bluePlayer.xPos - ball.xPos) <= PIXEL_SHIM
+          let isPlayerVerticallyAlignedWithBall = Math.abs(bluePlayer.yPos - ball.yPos) <= PIXEL_SHIM
+          if (isPlayerHorizontallyAlignedWithBall && isPlayerVerticallyAlignedWithBall) {
+              isSendingBall = true
+          }
+          else {
+              sentPlayer = bluePlayer
+          }
         }
     }
 }
@@ -228,7 +223,10 @@ function getBestOffensiveSpots() {
             }
             if (isObjectFarFromObjects(spot, FARNESS_THRESHOLD, defensiveTeam.concat(bestOffensiveSpots))) {
                 for (let i = 0; i < offensiveTeam.length - 1; i++) {
-                    if (!bestOffensiveSpots[i] || spot.distanceFromGoal < bestOffensiveSpots[i].distanceFromGoal) {
+                    if (
+                        !bestOffensiveSpots[i] || spot.distanceFromGoal < bestOffensiveSpots[i].distanceFromGoal 
+                        && isPathClear(offensiveTeam[i], spot)
+                    ) {
                         bestOffensiveSpots[i] = spot
                         break
                     }
