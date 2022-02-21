@@ -25,7 +25,7 @@ const DIRECTIONS = {
 const GOALS = {
   red: {
     xPos: (visualViewport.width - (PLAYER_RADIUS * 7)) / 2,
-    yPos: 0
+    yPos: PIXEL_SHIM
   },
   blue: {
     xPos: (visualViewport.width - (PLAYER_RADIUS * 7)) / 2,
