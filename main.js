@@ -449,9 +449,18 @@ function getWallCollidedIntoByObject(object) {
 }
 
 function handlePlayerBallCollision(player, ball) {
+    if (
+      ballPossessor !== recentBallPossessor &&
+      isObjectCloseToObject(ballPossessor, PIXEL_SHIM, recentBallPossessor)
+    ) {
+      if (players.blue.includes(recentBallPossessor)) {
+        recentBallPossessor.yPos += 50
+      } else {
+        recentBallPossessor.yPos -= 50
+      }
+    }
     recentBallPossessor = ballPossessor
     framesLeftRepossessionFreeze = FRAMES_PER_REPOSSESSION_FREEZE
-
     ballPossessor = player
     isSendingBall = false
     setOffensiveAndDefensiveTeams()
