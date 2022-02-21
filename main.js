@@ -118,13 +118,10 @@ let ballPossessor = players.blue[0]
 let recentBallPossessor = ballPossessor
 let framesLeftRepossessionFreeze = FRAMES_PER_REPOSSESSION_FREEZE
 let isSendingBall = false
-let customDestination = {
-  xPos: 0,
-  yPos: 0
-}
 let isUsingCustomDestination = false
 let frameCount = 0
 let isPaused = true
+let dribblingPlayer = {}
 let sentPlayer = {}
 let sentPlayerFramesLeft = 0
 let score = {
@@ -164,7 +161,8 @@ function handleTouchstart(event) {
     }
   }
   if (!isPlayerTouched && offensiveTeam == players.blue) {
-    setObjectTowardsSpotAtSpeed(ballPossessor, touch1, FAST_SPEED / 2)
+    dribblingPlayer = ballPossessor
+    setObjectTowardsSpotAtSpeed(ballPossessor, touch1, SLOW_SPEED)
   }
 }
 
@@ -208,7 +206,7 @@ function gameLoop() {
 function setPlayerPaths() {
   let bestOffensiveSpots = getBestOffensiveSpots()
   for (let i = 0; i < bestOffensiveSpots.length; i++) {
-    if (offensiveTeam[i] !== sentPlayer) setObjectTowardsSpotAtSpeed(offensiveTeam[i], bestOffensiveSpots[i], SLOW_SPEED)
+    if (offensiveTeam[i] !== sentPlayer && offensiveTeam[i] !== dribblingPlayer) setObjectTowardsSpotAtSpeed(offensiveTeam[i], bestOffensiveSpots[i], SLOW_SPEED)
   }
   let bestDefensiveSpots = getBestDefensiveSpots()
   for (let i = 0; i < bestDefensiveSpots.length; i++) {
