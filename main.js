@@ -118,6 +118,11 @@ let ballPossessor = players.blue[0]
 let recentBallPossessor = ballPossessor
 let framesLeftRepossessionFreeze = FRAMES_PER_REPOSSESSION_FREEZE
 let isSendingBall = false
+let customDestination = {
+  xPos: 0,
+  yPos: 0
+}
+let isUsingCustomDestination = false
 let frameCount = 0
 let isPaused = true
 let sentPlayer = {}
@@ -142,22 +147,24 @@ function initializeGame() {
 function handleTouchstart(event) {
   touch1.xPos = event.touches[0].clientX
   touch1.yPos = event.touches[0].clientY
-  determineIfSendingPlayerOrBall()
-}
-
-function determineIfSendingPlayerOrBall() {
+  let isPlayerTouched = false
   for (let i = 0; i < players.blue.length; i++) {
     let bluePlayer = players.blue[i]
-    if (isObjectCloseToObject(touch1, PLAYER_RADIUS * 4, bluePlayer)) {
+    if (isObjectCloseToObject(touch1, PLAYER_RADIUS, bluePlayer)) {
       let isPlayerHorizontallyAlignedWithBall = Math.abs(bluePlayer.xPos - ball.xPos) <= PIXEL_SHIM
       let isPlayerVerticallyAlignedWithBall = Math.abs(bluePlayer.yPos - ball.yPos) <= PIXEL_SHIM
       if (isPlayerHorizontallyAlignedWithBall && isPlayerVerticallyAlignedWithBall) {
         isSendingBall = true
+        isPlayerTouched = true
       }
       else {
         sentPlayer = bluePlayer
+        isPlayerTouched = true
       }
     }
+  }
+  if (!isPlayerTouched && offensiveTeam == players.blue) {
+    setObjectTowardsSpotAtSpeed(ballPossessor, touch1, FAST_SPEED)
   }
 }
 
@@ -166,11 +173,9 @@ function handleTouchmove(event) {
   touch2.xPos = event.touches[0].clientX
   touch2.yPos = event.touches[0].clientY
   if (isSendingBall) {
-    console.log("ball sent")
     setObjectTowardsSpotAtSpeed(ball, touch2, FAST_SPEED)
     isPaused = false
   } else if (Object.keys(sentPlayer).length > 0) {
-    console.log("player sent")
     setObjectTowardsSpotAtSpeed(sentPlayer, touch2, FAST_SPEED)
     sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
   }
