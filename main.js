@@ -1,5 +1,5 @@
 const MILLISECONDS_PER_FRAME = 16
-const PLAYER_RADIUS =  visualViewport.width / 15
+const PLAYER_RADIUS =  visualViewport.width / 30
 const BALL_RADIUS = PLAYER_RADIUS / 2
 const GOAL_WIDTH = PLAYER_RADIUS * 7
 const PIXEL_SHIM = BALL_RADIUS + PLAYER_RADIUS
