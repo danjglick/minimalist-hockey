@@ -164,7 +164,7 @@ function handleTouchstart(event) {
     }
   }
   if (!isPlayerTouched && offensiveTeam == players.blue) {
-    setObjectTowardsSpotAtSpeed(ballPossessor, touch1, FAST_SPEED)
+    setObjectTowardsSpotAtSpeed(ballPossessor, touch1, SLOW_SPEED)
   }
 }
 
