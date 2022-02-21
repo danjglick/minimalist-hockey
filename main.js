@@ -1,4 +1,4 @@
-const MILLISECONDS_PER_FRAME = 16
+const MILLISECONDS_PER_FRAME = 10
 const PLAYER_RADIUS =  visualViewport.width / 20
 const BALL_RADIUS = PLAYER_RADIUS / 2
 const GOAL_WIDTH = PLAYER_RADIUS * 7
@@ -478,9 +478,9 @@ function handlePlayerBallCollision(player, ball) {
     isObjectCloseToObject(ballPossessor, PIXEL_SHIM, recentBallPossessor)
   ) {
     if (players.blue.includes(recentBallPossessor)) {
-      recentBallPossessor.yPos += 100
-    } else {
       recentBallPossessor.yPos -= 100
+    } else {
+      recentBallPossessor.yPos += 100
     }
   }
   recentBallPossessor = ballPossessor
