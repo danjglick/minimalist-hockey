@@ -166,11 +166,9 @@ function handleTouchmove(event) {
   touch2.xPos = event.touches[0].clientX
   touch2.yPos = event.touches[0].clientY
   if (isSendingBall) {
-    console.log("ball sent")
     setObjectTowardsSpotAtSpeed(ball, touch2, FAST_SPEED)
     isPaused = false
   } else if (Object.keys(sentPlayer).length > 0) {
-    console.log("player sent")
     setObjectTowardsSpotAtSpeed(sentPlayer, touch2, FAST_SPEED)
     sentPlayerFramesLeft = FRAMES_PER_SENT_PLAYER
   }
