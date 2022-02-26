@@ -544,17 +544,17 @@ function drawPlayers() {
 function drawBall() {
   context.beginPath()
   context.arc(ball.xPos, ball.yPos, BALL_RADIUS, 0, 2 * Math.PI)
-  context.fillStyle = "white"
+  context.fillStyle = "black"
   context.fill()
 }
 
 function drawGoals() {
   context.beginPath()
   context.rect(GOALS.red.xPos, GOALS.red.yPos, GOAL_WIDTH, visualViewport.height / 100)
-  context.fillStyle = "white"
+  context.fillStyle = "black"
   context.fill()
   context.beginPath()
   context.rect(GOALS.blue.xPos, GOALS.blue.yPos, GOAL_WIDTH, visualViewport.height / 100)
-  context.fillStyle = "white"
+  context.fillStyle = "black"
   context.fill()
 }
